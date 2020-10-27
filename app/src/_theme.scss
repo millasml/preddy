@@ -1,0 +1,76 @@
+@import "node_modules/bootstrap/scss/functions";
+@import "node_modules/bootstrap/scss/variables";
+@import "node_modules/bootstrap/scss/mixins";
+
+@import url("https://fonts.googleapis.com/css2?family=MuseoModerno:wght@700&family=Titillium+Web&display=swap");
+
+$custom-body-font: "Titillium Web";
+$custom-title-font: "MuseoModerno";
+
+$custom-midnight-teal: #1a535c;
+$custom-turquoise: #4ecdc4;
+$custom-yellow: #fbb13c;
+$custom-pink: #ff5b5b;
+$custom-blue: #006992;
+$box-shadow: 0 0.375rem 1.5rem 0 rgba(140, 152, 164, 0.225);
+
+$font-family-base: $custom-body-font;
+$headings-font-family: $custom-title-font;
+
+@keyframes backgroundColorChange {
+  0% {
+    background-color: $custom-midnight-teal;
+  }
+  20% {
+    background-color: $custom-turquoise;
+  }
+  40% {
+    background-color: $custom-yellow;
+  }
+  60% {
+    background-color: $custom-pink;
+  }
+  80% {
+    background-color: $custom-blue;
+  }
+}
+
+@keyframes colorChange {
+  0% {
+    color: $custom-midnight-teal;
+  }
+  20% {
+    color: $custom-turquoise;
+  }
+  40% {
+    color: $custom-yellow;
+  }
+  60% {
+    color: $custom-pink;
+  }
+  80% {
+    color: $custom-blue;
+  }
+}
+
+@import "node_modules/bootstrap/scss/bootstrap";
+
+.btn-primary {
+  background-color: $custom-blue;
+  border: none;
+}
+
+.header-font {
+  font-family: $headings-font-family;
+}
+
+.card {
+  padding: 2rem;
+  box-shadow: $box-shadow;
+  background-color: white;
+  border: none;
+}
+
+.form-label {
+  font-family: $headings-font-family;
+}
