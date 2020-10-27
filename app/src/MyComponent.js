@@ -1,6 +1,7 @@
 import React from "react";
 import { newContextComponents } from "@drizzle/react-components";
 import logo from "./logo.png";
+import Button from "react-bootstrap/Button";
 
 const { AccountData, ContractData, ContractForm } = newContextComponents;
 
@@ -8,6 +9,7 @@ export default ({ drizzle, drizzleState }) => {
   // destructure drizzle and drizzleState from props
   return (
     <div className="App">
+      <Button>Hello</Button>
       <div>
         <img src={logo} alt="drizzle-logo" />
         <h1>Drizzle Examples</h1>
