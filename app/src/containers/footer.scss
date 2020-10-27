@@ -1,0 +1,15 @@
+@import "../theme";
+
+.footer {
+  background-color: $custom-blue;
+  width: 100%;
+  color: white;
+
+  h1 {
+    font-size: larger;
+  }
+
+  .content {
+    padding: 3rem 0;
+  }
+}

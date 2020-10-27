@@ -1,0 +1,18 @@
+@import "../theme";
+
+.header {
+  .navbar {
+    font-family: $custom-body-font;
+    box-shadow: $box-shadow;
+    height: 5rem;
+    background-color: white;
+
+    h1 {
+      font-size: larger;
+    }
+
+    a {
+      color: black;
+    }
+  }
+}
