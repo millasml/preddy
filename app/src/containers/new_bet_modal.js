@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 import Modal from "react-bootstrap/Modal";
-import NewMarketForm from "../components/new_market";
+import NewBetForm from "../components/new_bet";
 
 export default function OpenMarketModal(props) {
   const [show, setShow] = useState(false);
@@ -22,10 +22,10 @@ export default function OpenMarketModal(props) {
         size="lg"
       >
         <Modal.Header closeButton>
-          <Modal.Title>Create New Market</Modal.Title>
+          <Modal.Title>Place Bet on {props.outcome}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <NewMarketForm onClose={handleClose} />
+          <NewBetForm onClose={handleClose} outcome={props.outcome} />
         </Modal.Body>
       </Modal>
     </>

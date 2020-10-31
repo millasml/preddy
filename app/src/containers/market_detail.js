@@ -8,12 +8,11 @@ import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import ProgressBar from "react-bootstrap/ProgressBar";
 import Badge from "react-bootstrap/Badge";
-
 import Card from "react-bootstrap/Card";
-
 import ListGroup from "react-bootstrap/ListGroup";
-import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+import NewBetModal from "./new_bet_modal";
+import NewBet from "../components/new_bet";
 
 export default function MarketDetail(props) {
   return (
@@ -56,7 +55,9 @@ export default function MarketDetail(props) {
                     />
                   </Col>
                   <Col xs={1}>
-                    <Button>Bet</Button>
+                    <NewBetModal outcome={possibility.outcome}>
+                      <Button>Bet</Button>
+                    </NewBetModal>
                   </Col>
                 </Row>
               </ListGroup.Item>
