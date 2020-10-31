@@ -22,6 +22,7 @@ export default function AddNewMarket(props) {
       onSubmit={(e) => {
         e.preventDefault();
         props.onSubmit(question, description, outcomes, expiryDate, arbiter);
+        props.onClose();
       }}
       className="new-market-form"
     >

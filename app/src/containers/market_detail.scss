@@ -1,0 +1,11 @@
+@import "../theme";
+
+.market-detail {
+  .card {
+    margin: 2rem 0;
+  }
+  .status {
+    background-color: $custom-yellow;
+    font-size: large;
+  }
+}
