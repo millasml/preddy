@@ -1,9 +1,8 @@
-const SimpleStorage = artifacts.require("SimpleStorage");
-const TutorialToken = artifacts.require("TutorialToken");
-const ComplexStorage = artifacts.require("ComplexStorage");
+const MarketManager = artifacts.require("MarketManager");
+const Market = artifacts.require("Market");
 
 module.exports = function(deployer) {
-  deployer.deploy(SimpleStorage);
-  deployer.deploy(TutorialToken);
-  deployer.deploy(ComplexStorage);
+  let reportWindow = 24 * 60 * 60
+  deployer.deploy(MarketManager, reportWindow);
+  // deployer.deploy(Market);
 };
