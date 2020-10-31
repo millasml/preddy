@@ -6,13 +6,7 @@ import drizzleOptions from "./drizzleOptions";
 import Layout from "./containers/layout";
 import Main from "./pages/main";
 
-import {
-  BrowserRouter,
-  Switch,
-  Route,
-  Link,
-  withRouter,
-} from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 
 const drizzle = new Drizzle(drizzleOptions);
 

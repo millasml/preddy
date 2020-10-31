@@ -8,7 +8,6 @@ import Col from "react-bootstrap/Col";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { faTelegramPlane } from "@fortawesome/free-brands-svg-icons";
 
 export default function Footer(props) {
   return (
