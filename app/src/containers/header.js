@@ -6,6 +6,7 @@ import "./header.scss";
 import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
 import Button from "react-bootstrap/Button";
+import OpenMarketModal from "./open_market_modal";
 
 export default function Header(props) {
   return (
@@ -23,7 +24,9 @@ export default function Header(props) {
             </Nav.Link>
           </Nav.Item>
           <Nav.Item>
-            <Button className="open-market-btn">Open Market</Button>
+            <OpenMarketModal>
+              <Button className="open-market-btn">Open Market</Button>
+            </OpenMarketModal>
           </Nav.Item>
         </Nav>
       </Navbar>
