@@ -15,10 +15,10 @@ contract Market is Seriality {
     */
 
     mapping(address => Bets) public bets;
-    bool open;
+    Status status;
     uint256 totalAmount;
     mapping(uint256 => uint256) outcomeToAmount;
-    mapping(address => uint256) result;
+    mapping(address => uint256) result; // stores winnings in Wei
     string[] public outcomes;
     string public description;
     uint256 public resolutionUnixTime;
@@ -30,6 +30,8 @@ contract Market is Seriality {
         // mapping of outcomeIdx => amount
         mapping(uint256 => uint256) outcomes;
     }
+
+    enum Status {Open, Close}
 
     constructor(
         bytes memory _serializedOutcomes,
@@ -48,7 +50,7 @@ contract Market is Seriality {
         arbiter = _arbiter;
         description = _description;
         resolutionUnixTime = _resolutionUnixTime;
-        open = true;
+        status = Status.Open;
     }
 
     function placeBet(uint256 outcomeIdx) public payable {
@@ -56,11 +58,18 @@ contract Market is Seriality {
             betters.push(msg.sender);
             bets[msg.sender].exists = true;
         }
-        bets[msg.sender].outcomes[outcomeIdx] += msg.value;
+        bets[msg.sender].outcomes[outcomeIdx] += msg.value; // pls note this is in Wei
         outcomeToAmount[outcomeIdx] += msg.value;
         totalAmount += msg.value;
     }
 
+    function getStatus() public view returns (string memory){
+        if(status == Status.Close){
+            return "Close";
+        } else {
+            return "Open";
+        }
+    }
     function getBet(address better, uint256 outcomeIdx) public view returns (bool, uint256) {
         return (bets[better].exists, bets[better].outcomes[outcomeIdx]);
     }
@@ -70,9 +79,9 @@ contract Market is Seriality {
     }
 
     function resolve(uint256 outcomeIdx) public {
-        if (msg.sender != arbiter) {
-            return;
-        }
+        require(msg.sender == arbiter, "only arbiter can resolve the market");
+        require(status == Status.Open, "market has already been resolved");
+
         // if nobody wins, arbiter gets everything
         if (outcomeToAmount[outcomeIdx] == 0) {
             result[arbiter] = totalAmount;
@@ -82,21 +91,23 @@ contract Market is Seriality {
             for (uint256 i = 0; i < betters.length; i++) {
                 address better = betters[i];
                 uint256 betAmount = bets[better].outcomes[outcomeIdx];
-                uint256 winAmount = ((betAmount / outcomeToAmount[outcomeIdx]) * pot) + betAmount;
-                result[better] = winAmount;
+                uint256 winAmount = pot * betAmount / outcomeToAmount[outcomeIdx];
+                result[better] = winAmount + betAmount;
             }
         }
-        open = false;
+        status = Status.Close;
     }
 
     function withdraw() public {
-        if (open) {
-            return;
-        }
+        /**
+        if withdraw is called before market closes, result mapping returns a default value of 0.
+        */
+
         uint amount = result[msg.sender];
         result[msg.sender] = 0;
         msg.sender.transfer(amount);
     }
+
 }
 
 
