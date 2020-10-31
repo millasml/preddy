@@ -1,0 +1,15 @@
+.market-item.list-group-item {
+  .market-item-title {
+    font-weight: 700;
+    font-size: large;
+  }
+  .market-item-description {
+    color: darkgray;
+  }
+  .see-more {
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+  }
+}
