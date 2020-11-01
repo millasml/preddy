@@ -2,6 +2,8 @@ import React from "react";
 
 import "./layout.scss";
 
+import { DrizzleContext } from "@drizzle/react-plugin";
+
 import Header from "../containers/header";
 import Footer from "../containers/footer";
 

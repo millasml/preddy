@@ -1,16 +1,41 @@
 import React, { useState } from "react";
 
-import Button from "react-bootstrap/Button";
+import { DrizzleContext } from "@drizzle/react-plugin";
 
 import "./new_market.scss";
 
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
+import Button from "react-bootstrap/Button";
 import FormControl from "react-bootstrap/FormControl";
 import ModalFooter from "react-bootstrap/ModalFooter";
 import BetOptions from "./bet_options";
 
-export default function AddNewMarket(props) {
+export default (props) => {
+  return (
+    <DrizzleContext.Consumer>
+      {(drizzleContext) => {
+        const { drizzle, drizzleState, initialized } = drizzleContext;
+
+        console.log(drizzle);
+
+        if (!initialized) {
+          return "Loading...";
+        }
+
+        return (
+          <AddNewMarketComponent
+            properties={props}
+            drizzle={drizzle}
+            drizzleState={drizzleState}
+          />
+        );
+      }}
+    </DrizzleContext.Consumer>
+  );
+};
+
+function AddNewMarketComponent(props) {
   const [question, setQuestion] = useState(null);
   const [description, setDescription] = useState(null);
   const [outcomes, setOutcomes] = useState(null);

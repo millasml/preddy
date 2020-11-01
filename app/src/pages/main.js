@@ -6,7 +6,6 @@ import MarketList from "../containers/market_list";
 const { AccountData, ContractData, ContractForm } = newContextComponents;
 
 export default ({ drizzle, drizzleState }) => {
-  // destructure drizzle and drizzleState from props
   return (
     <div className="main">
       <MarketList></MarketList>
