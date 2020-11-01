@@ -32,7 +32,7 @@ function strArrToHex(arr){
 	// output[0]: serialization of array of strings
 	// output[1]: array of string byte sizes
 
-	reversedArr = arr.slice().reverse()
+	let reversedArr = arr.slice().reverse()
 	let result = ""
 	let sizes = []
 
@@ -47,12 +47,13 @@ function strArrToHex(arr){
 }
 
 function serialityStrToHex(str){
-	let hexSize = str.length.toString(16).padStart(64, "0")
+	let bitWidth = 64
+	let hexSize = str.length.toString(16).padStart(bitWidth, "0")
 	let hexStr = str.split("")
                 .map(c => c.charCodeAt(0).toString(16).padStart(2, "0"))
                 .join("");
 
-	let size = Math.ceil(hexStr.length / 64) * 64
+	let size = Math.ceil(hexStr.length / bitWidth) * bitWidth
 	hexStr = hexStr.padEnd(size, "0")
 	hexStr = hexStr + hexSize
 	return hexStr

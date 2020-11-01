@@ -13,8 +13,9 @@ contract TestMarket is Seriality {
         string[] memory outcomes = new string[](2);
         outcomes[0] = "win";
         outcomes[1] = "lose";
+        string memory question = "Question?";
         string memory description = "test prediction market";
-        uint256 resolutionUnixTime = block.timestamp;
+        uint256 resolutionUnixTime = block.timestamp + 10;
         bytes memory buffer = new bytes(200);
         uint256[] memory outcomeLengths = new uint256[](2);
         address arbiter;
@@ -33,6 +34,7 @@ contract TestMarket is Seriality {
             buffer,
             outcomeLengths,
             arbiter,
+            question,
             description,
             resolutionUnixTime
         );

@@ -15,6 +15,7 @@ contract MarketManager {
         bytes memory _serializedOutcomes,
         uint256[] memory _outcomeLengths,
         address _arbiter,
+        string memory _question,
         string memory _description,
         uint256 _resolutionUnixTime
     ) public {
@@ -22,6 +23,7 @@ contract MarketManager {
             _serializedOutcomes,
             _outcomeLengths,
             _arbiter,
+            _question,
             _description,
             _resolutionUnixTime
         );

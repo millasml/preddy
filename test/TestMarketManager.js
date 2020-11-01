@@ -11,6 +11,7 @@ contract("MarketManager", async accounts => {
         let [outcomes, outcomeLengths] = utils.strArrToHex(outcomeStrings)
 
         let arbiter = accounts[0]
+        let question = "What?"
         let description = "yet another prediction market"
         let resolutionUnixTime = 1604132297
 
@@ -18,6 +19,7 @@ contract("MarketManager", async accounts => {
             outcomes,
             outcomeLengths,
             arbiter,
+            question,
             description,
             resolutionUnixTime,
             {from: arbiter}
@@ -26,8 +28,9 @@ contract("MarketManager", async accounts => {
         let marketAddress = await instance.markets(accounts[0])
         let market = await Market.at(marketAddress)
 
-        assert.equal(await market.resolutionUnixTime(), resolutionUnixTime, "wrong resolution time")
+        assert.equal(await market.resolutionTimestamp(), resolutionUnixTime, "wrong resolution time")
         assert.equal(await market.arbiter(), arbiter, "wrong arbiter")
+        assert.equal(await market.question(), question, "wrong arbiter")
         assert.equal(await market.description(), description, "wrong description")
         assert.equal(await market.getStatus(), "Open", "wrong status")
         for(let i = 0; i < outcomeStrings.length; i++){
