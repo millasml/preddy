@@ -21,6 +21,7 @@ const MOCK_MARKET = {
   ],
   stakes: "112576.06 DAI",
   open: true,
+  arbiter: "asdfdsfafdsd",
 };
 
 export default ({ drizzle, drizzleState }) => {
@@ -33,6 +34,7 @@ export default ({ drizzle, drizzleState }) => {
         endDate={MOCK_MARKET.endDate}
         voteDetails={MOCK_MARKET.voteDetails}
         isOpen={MOCK_MARKET.open}
+        arbiter={MOCK_MARKET.arbiter}
       />
     </div>
   );

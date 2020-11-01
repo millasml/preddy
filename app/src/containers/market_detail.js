@@ -11,6 +11,7 @@ import Badge from "react-bootstrap/Badge";
 import Card from "react-bootstrap/Card";
 import ListGroup from "react-bootstrap/ListGroup";
 
+import ResolveModal from "./resolve_modal";
 import NewBetModal from "./new_bet_modal";
 
 export default function MarketDetail(props) {
@@ -37,6 +38,28 @@ export default function MarketDetail(props) {
           </Col>
         </Row>
       </Card>
+      {props.isOpen && (
+        <Card>
+          <Row>
+            <Col xs={4} className="text-center">
+              <h6>Arbiter</h6>
+              {props.arbiter}
+            </Col>
+            <Col>Are you the arbiter? If so, you can resolve this market.</Col>
+            <Col>
+              <ResolveModal
+                outcomes={props.voteDetails.map(
+                  (possibility) => possibility.outcome
+                )}
+                title={props.question}
+              >
+                <Button>Resolve</Button>
+              </ResolveModal>
+            </Col>
+          </Row>
+        </Card>
+      )}
+
       <Card>
         <Card.Title>Outcome and Probabilites</Card.Title>
         <ListGroup variant="flush">
