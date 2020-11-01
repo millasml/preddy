@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 
 import "./market_detail.scss";
+
+import { DrizzleContext } from "@drizzle/react-plugin";
 
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
@@ -14,7 +16,48 @@ import ListGroup from "react-bootstrap/ListGroup";
 import ResolveModal from "./resolve_modal";
 import NewBetModal from "./new_bet_modal";
 
-export default function MarketDetail(props) {
+export default (props) => {
+  const [stackId, setStackId] = useState(null);
+  return (
+    <DrizzleContext.Consumer>
+      {(drizzleContext) => {
+        const { drizzle, drizzleState, initialized } = drizzleContext;
+
+        const contract = drizzle.contracts.MarketManager;
+
+        const getTxStatus = () => {
+          // get the transaction states from the drizzle state
+          const { transactions, transactionStack } = drizzleState;
+
+          // get the transaction hash using our saved `stackId`
+          const txHash = transactionStack[stackId];
+
+          // if transaction hash does not exist, don't display anything
+          if (!txHash) return null;
+
+          console.log(
+            `Transaction status: ${
+              transactions[txHash] && transactions[txHash].status
+            }`
+          );
+
+          // otherwise, return the transaction status
+          return `Transaction status: ${
+            transactions[txHash] && transactions[txHash].status
+          }`;
+        };
+
+        if (!initialized) {
+          return "Loading...";
+        }
+
+        return <MarketDetail {...props} />;
+      }}
+    </DrizzleContext.Consumer>
+  );
+};
+
+function MarketDetail(props) {
   return (
     <Container className="market-detail">
       <Card>
