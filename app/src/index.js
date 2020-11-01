@@ -19,7 +19,7 @@ function App() {
         <Layout>
           <Switch>
             <Route exact path="/" component={Main} />
-            <Route exact path="/market" component={Market} />
+            <Route exact path="/market/:address" component={Market} />
           </Switch>
         </Layout>
       </DrizzleContext.Provider>

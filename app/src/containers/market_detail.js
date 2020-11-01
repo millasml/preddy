@@ -18,6 +18,7 @@ import NewBetModal from "./new_bet_modal";
 
 export default (props) => {
   const [stackId, setStackId] = useState(null);
+  console.log(props.address); //use this address to get the details
   return (
     <DrizzleContext.Consumer>
       {(drizzleContext) => {

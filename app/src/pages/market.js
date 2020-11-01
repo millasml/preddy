@@ -24,11 +24,12 @@ const MOCK_MARKET = {
   arbiter: "asdfdsfafdsd",
 };
 
-export default ({ drizzle, drizzleState }) => {
+export default (props) => {
   // destructure drizzle and drizzleState from props
   return (
     <div className="market">
       <MarketDetail
+        address={props.match.params.address}
         question={MOCK_MARKET.question}
         description={MOCK_MARKET.description}
         endDate={MOCK_MARKET.endDate}
