@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.21;
 
-import {Seriality} from "./Seriality/src/Seriality.sol";
-
-contract Market is Seriality {
+contract Market {
     /**
     Hard Requirement
     Users can open new topic (a new prediction market) with 
@@ -19,8 +17,9 @@ contract Market is Seriality {
     uint256 totalAmount;
     mapping(uint256 => uint256) outcomeToAmount;
     mapping(address => uint256) result; // stores winnings in Wei
-    string[] public outcomes;
     string public question;
+    bytes32[] outcomes;
+    uint256[] outcomeLengths;
     string public description;
     uint256 public resolutionTimestamp;
     address public arbiter;
@@ -35,20 +34,15 @@ contract Market is Seriality {
     enum Status {Open, Close, Resolved}
 
     constructor(
-        bytes memory _serializedOutcomes,
+        bytes32[] memory _outcomes,
         uint256[] memory _outcomeLengths,
         address _arbiter,
         string memory _question,
         string memory _description,
         uint256 _resolutionTimestamp
     ) public {
-        uint256 offset = _serializedOutcomes.length;
-        for (uint256 i = 0; i < _outcomeLengths.length; i++) {
-            string memory outcome = new string(_outcomeLengths[i]);
-            bytesToString(offset, _serializedOutcomes, bytes(outcome));
-            offset -= sizeOfString(outcome);
-            outcomes.push(outcome);
-        }
+        outcomes = _outcomes;
+        outcomeLengths = _outcomeLengths;
         arbiter = _arbiter;
         question = _question;
         description = _description;
@@ -60,21 +54,32 @@ contract Market is Seriality {
     // this modifier first, otherwise the guards
     // will not take the new stage into account.
     modifier timedTransitions() {
-        if (status == Status.Open && block.timestamp >= resolutionTimestamp){
+        if (status == Status.Open && block.timestamp >= resolutionTimestamp) {
             status = Status.Close;
         }
         _;
     }
 
+    function getNumOutcome() public view returns (uint256){
+        return outcomeLengths.length;
+    }
+
+    function getOutcome(uint256 i) public view returns (bytes32[] memory, uint256, uint256){
+        uint256 start = i == 0 ? 0 : outcomeLengths[i];
+        uint256 end = i == outcomeLengths.length - 1 ? outcomes.length : outcomeLengths[i + 1];
+        return (outcomes, start, end);
+    }
+
     function getStatus() public view returns (string memory){
-        if(status == Status.Close){
+        if (status == Status.Close) {
             return "Close";
-        } else if (status == Status.Open){
+        } else if (status == Status.Open) {
             return "Open";
         } else {
             return "Resolved";
         }
     }
+
     function getBet(address better, uint256 outcomeIdx) public view returns (bool, uint256) {
         return (bets[better].exists, bets[better].outcomes[outcomeIdx]);
     }
@@ -90,7 +95,8 @@ contract Market is Seriality {
             betters.push(msg.sender);
             bets[msg.sender].exists = true;
         }
-        bets[msg.sender].outcomes[outcomeIdx] += msg.value; // pls note this is in Wei
+        bets[msg.sender].outcomes[outcomeIdx] += msg.value;
+        // pls note this is in Wei
         outcomeToAmount[outcomeIdx] += msg.value;
         totalAmount += msg.value;
     }

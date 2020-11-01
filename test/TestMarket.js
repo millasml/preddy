@@ -11,7 +11,7 @@ contract("Market", async accounts => {
         let instance = await MarketManager.deployed();
 
         let outcomeStrings = ["Binjai", "Banyan", "Tanjong"];
-        let [outcomes, outcomeLengths] = utils.strArrToHex(outcomeStrings);
+        let [outcomes, outcomeLengths] = utils.strArrToBytes(outcomeStrings);
         let arbiter = accounts[0];
         let question = "Which is the best hall in North Hill?";
         let description = ".";

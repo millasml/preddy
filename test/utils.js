@@ -1,62 +1,29 @@
-function hexToStr(hex) {
-	var str = '';
-	for (var i = 0; i < hex.length; i += 2) {
-	   var v = parseInt(hex.substr(i, 2), 16);
-	   if (v) str += String.fromCharCode(v);
-	}
+function strArrToBytes(arr) {
+    const charWidth = 2;
+    const wordWidth = 64;
+    const numChar = wordWidth / charWidth;
 
-  	params = [];
-	res = "";
-	for (var i=0; i<= str.length; i++){
-		if(str.charCodeAt(i) > 31){
-			res = res + str[i];
-		}
-		else{
-			params.push(res);
-			res = "";
-		}
-	}
-	params.pop();
+    let outcomes = [];
+    let outcomeLengths = [];
+    let x = 0;
 
-  return params;
+    for (let str of arr) {
+        for (let i = 0; i < Math.ceil(str.length / numChar); i++) {
+            let subStr = str.slice(i * numChar, (i + 1) * numChar);
+            let hex = web3.utils.utf8ToHex(subStr);
+            outcomes.push(hex);
+        }
+        outcomeLengths.push(x);
+        x += Math.ceil(str.length/ numChar);
+    }
+
+    return [outcomes, outcomeLengths];
 }
 
-function strToHex(str) {
-    return str.split("")
-                .map(c => c.charCodeAt(0).toString(16).padStart(2, "0"))
-                .join("");
+function bytesToStr(arr, start, end) {
+    arr = arr.slice(start, end);
+    return arr.map(x => web3.utils.hexToUtf8(x)).join("");
 }
 
-function strArrToHex(arr){
-	// input: array of strings
-	// output[0]: serialization of array of strings
-	// output[1]: array of string byte sizes
-
-	let reversedArr = arr.slice().reverse()
-	let result = ""
-	let sizes = []
-
-	for(let str of reversedArr){
-		let hexStr = serialityStrToHex(str)
-		result += hexStr
-		sizes.push(hexStr.length)
-	}
-
-	result = "0x" + result
-	return [result, sizes]
-}
-
-function serialityStrToHex(str){
-	let bitWidth = 64
-	let hexSize = str.length.toString(16).padStart(bitWidth, "0")
-	let hexStr = str.split("")
-                .map(c => c.charCodeAt(0).toString(16).padStart(2, "0"))
-                .join("");
-
-	let size = Math.ceil(hexStr.length / bitWidth) * bitWidth
-	hexStr = hexStr.padEnd(size, "0")
-	hexStr = hexStr + hexSize
-	return hexStr
-}
-
-module.exports.strArrToHex = strArrToHex
+module.exports.strArrToBytes = strArrToBytes;
+module.exports.bytesToStr = bytesToStr;
