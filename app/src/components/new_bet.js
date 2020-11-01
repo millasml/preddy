@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
 import Button from "react-bootstrap/Button";
 
@@ -8,7 +8,6 @@ import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import FormControl from "react-bootstrap/FormControl";
 import ModalFooter from "react-bootstrap/ModalFooter";
-import BetOptions from "./bet_options";
 
 export default function NewBet(props) {
   const [address, setAddress] = useState(null);

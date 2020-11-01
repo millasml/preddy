@@ -12,7 +12,6 @@ import Card from "react-bootstrap/Card";
 import ListGroup from "react-bootstrap/ListGroup";
 
 import NewBetModal from "./new_bet_modal";
-import NewBet from "../components/new_bet";
 
 export default function MarketDetail(props) {
   return (

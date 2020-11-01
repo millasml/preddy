@@ -10,7 +10,6 @@ export default function Layout(props) {
     <div className="layout">
       <Header />
       <div className="content">{props.children}</div>
-
       <Footer />
     </div>
   );
