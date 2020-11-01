@@ -4,6 +4,8 @@ import { DrizzleContext } from "@drizzle/react-plugin";
 
 import "./new_market.scss";
 
+import { strArrToHex } from "../utils";
+
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
@@ -12,22 +14,68 @@ import ModalFooter from "react-bootstrap/ModalFooter";
 import BetOptions from "./bet_options";
 
 export default (props) => {
+  const [stackId, setStackId] = useState(null);
   return (
     <DrizzleContext.Consumer>
       {(drizzleContext) => {
         const { drizzle, drizzleState, initialized } = drizzleContext;
 
-        console.log(drizzle);
+        const contract = drizzle.contracts.MarketManager;
+
+        const createContract = (
+          question,
+          description,
+          outcomeStrings,
+          expiryDate,
+          arbiter
+        ) => {
+          console.log(description, outcomeStrings, expiryDate);
+          const [outcomes, outcomeLengths] = strArrToHex(outcomeStrings);
+          const resolutionUnixTime = new Date(expiryDate).valueOf() / 1000;
+          const newStackId = contract.methods["createMarket"].cacheSend(
+            outcomes,
+            outcomeLengths,
+            "0x3209cdd1d9b2404feec5371a46f45c1d903aae95",
+            description,
+            resolutionUnixTime,
+            {
+              from: drizzleState.accounts[0],
+            }
+          );
+          setStackId(newStackId);
+        };
+
+        const getTxStatus = () => {
+          // get the transaction states from the drizzle state
+          const { transactions, transactionStack } = drizzleState;
+
+          // get the transaction hash using our saved `stackId`
+          const txHash = transactionStack[stackId];
+
+          // if transaction hash does not exist, don't display anything
+          if (!txHash) return null;
+
+          console.log(
+            `Transaction status: ${
+              transactions[txHash] && transactions[txHash].status
+            }`
+          );
+
+          // otherwise, return the transaction status
+          return `Transaction status: ${
+            transactions[txHash] && transactions[txHash].status
+          }`;
+        };
 
         if (!initialized) {
           return "Loading...";
         }
 
         return (
-          <AddNewMarketComponent
-            properties={props}
-            drizzle={drizzle}
-            drizzleState={drizzleState}
+          <AddNewMarket
+            {...props}
+            onSubmit={createContract}
+            getTxStatus={getTxStatus}
           />
         );
       }}
@@ -35,7 +83,7 @@ export default (props) => {
   );
 };
 
-function AddNewMarketComponent(props) {
+function AddNewMarket(props) {
   const [question, setQuestion] = useState(null);
   const [description, setDescription] = useState(null);
   const [outcomes, setOutcomes] = useState(null);
@@ -47,7 +95,7 @@ function AddNewMarketComponent(props) {
       onSubmit={(e) => {
         e.preventDefault();
         props.onSubmit(question, description, outcomes, expiryDate, arbiter);
-        props.onClose();
+        // props.onClose();
       }}
       className="new-market-form"
     >
@@ -111,6 +159,7 @@ function AddNewMarketComponent(props) {
           <Button type="submit">Create New Market</Button>
         </Form.Row>
       </ModalFooter>
+      <Button onClick={props.getTxStatus}>Get Txn Status</Button>
     </Form>
   );
 }
