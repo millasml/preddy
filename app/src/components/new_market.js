@@ -4,7 +4,7 @@ import { DrizzleContext } from "@drizzle/react-plugin";
 
 import "./new_market.scss";
 
-import { strArrToHex } from "../utils";
+import { strArrToBytes } from "../utils";
 
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
@@ -29,13 +29,13 @@ export default (props) => {
           expiryDate,
           arbiter
         ) => {
-          console.log(description, outcomeStrings, expiryDate);
-          const [outcomes, outcomeLengths] = strArrToHex(outcomeStrings);
+          const [outcomes, outcomeLengths] = strArrToBytes(outcomeStrings);
           const resolutionUnixTime = new Date(expiryDate).valueOf() / 1000;
           const newStackId = contract.methods["createMarket"].cacheSend(
             outcomes,
             outcomeLengths,
-            "0x3209cdd1d9b2404feec5371a46f45c1d903aae95",
+            arbiter,
+            question,
             description,
             resolutionUnixTime,
             {
