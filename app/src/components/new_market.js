@@ -20,6 +20,8 @@ export default (props) => {
       {(drizzleContext) => {
         const { drizzle, drizzleState, initialized } = drizzleContext;
 
+        console.log(drizzleState.accounts);
+
         const contract = drizzle.contracts.MarketManager;
 
         const createContract = (
