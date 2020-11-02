@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.21;
 
-contract Market {
+import {Utils} from "./Utils.sol";
+
+contract Market is Utils {
     /**
     Hard Requirement
     Users can open new topic (a new prediction market) with 
@@ -25,6 +27,11 @@ contract Market {
     address public arbiter;
     address[] public betters;
 
+    // liquidity
+    uint256 productConst;
+    uint256[] tokenCounts;
+    uint256 tokenTotal;
+
     struct Bets {
         bool exists;
         // mapping of outcomeIdx => amount
@@ -36,13 +43,13 @@ contract Market {
     constructor(
         bytes memory _outcomes,
         uint256 _outcomeCount,
+        uint256[] memory initialMarket,
         address _arbiter,
         string memory _question,
         string memory _description,
         uint256 _resolutionUnixTime
-    ) public {
-        outcomes = new bytes(_outcomes.length);
-        for (uint256 i=0; i<_outcomes.length; i++) {
+    ) public payable {
+        for (uint256 i = 0; i < _outcomes.length; i++) {
             outcomes.push(_outcomes[i]);
         }
         outcomeCount = _outcomeCount;
@@ -51,6 +58,21 @@ contract Market {
         description = _description;
         resolutionTimestamp = _resolutionUnixTime;
         status = Status.Open;
+
+        productConst = 1;
+        tokenTotal = 0;
+        tokenCounts = new uint256[](initialMarket.length);
+        copy(initialMarket, tokenCounts);
+        for (uint256 i = 0; i < initialMarket.length; i++) {
+            require(initialMarket[i] != 0, "Initial market options must be >0");
+            productConst *= initialMarket[i];
+            tokenTotal += initialMarket[i];
+        }
+        require(
+            tokenTotal != 10000,
+            "Initial market options must sum to 10000"
+        );
+        totalAmount = msg.value;
     }
 
     // Perform timed transitions. Be sure to mention
@@ -63,7 +85,7 @@ contract Market {
         _;
     }
 
-    function getNumOutcome() public view returns (uint256){
+    function getNumOutcome() public view returns (uint256) {
         return outcomeCount;
     }
 
@@ -73,7 +95,7 @@ contract Market {
     //     return (outcomes, start, end);
     // }
 
-    function getStatus() public view returns (string memory){
+    function getStatus() public view returns (string memory) {
         if (status == Status.Close) {
             return "Close";
         } else if (status == Status.Open) {
@@ -83,7 +105,11 @@ contract Market {
         }
     }
 
-    function getBet(address better, uint256 outcomeIdx) public view returns (bool, uint256) {
+    function getBet(address better, uint256 outcomeIdx)
+        public
+        view
+        returns (bool, uint256)
+    {
         return (bets[better].exists, bets[better].outcomes[outcomeIdx]);
     }
 
@@ -91,14 +117,37 @@ contract Market {
         return result[better];
     }
 
-    function placeBet(uint256 outcomeIdx) public timedTransitions payable {
-        require(status == Status.Open, "market is not open for bets");
+    function calcNewTokens(uint256 betAmount) internal view returns (uint256) {
+        return (betAmount * (totalAmount / tokenTotal)) / outcomes.length;
+    }
 
+    // returns percentage (i.e. 1056 => 10.56%)
+    function getPrediction(uint256 outcomeIdx) public view returns (uint256) {
+        return (tokenCounts[outcomeIdx] / tokenTotal) * 100;
+    }
+
+    function placeBet(uint256 outcomeIdx) public payable timedTransitions {
+        require(status == Status.Open, "market is not open for bets");
+        uint256 newTokens = calcNewTokens(msg.value);
+        if (newTokens == 0) {
+            revert("value less than minimum bet");
+        }
+        uint256 newProduct = 1;
+        for (uint256 i = 0; i < tokenCounts.length; i++) {
+            if (i != outcomeIdx) {
+                tokenCounts[i] += newTokens;
+                newProduct *= tokenCounts[i];
+            }
+        }
+        uint256 newOutcomeTokenCount = productConst / newProduct;
+        uint256 betterTokenCount = newTokens +
+            tokenCounts[outcomeIdx] -
+            newOutcomeTokenCount;
         if (!bets[msg.sender].exists) {
             betters.push(msg.sender);
             bets[msg.sender].exists = true;
         }
-        bets[msg.sender].outcomes[outcomeIdx] += msg.value;
+        bets[msg.sender].outcomes[outcomeIdx] += betterTokenCount;
         // pls note this is in Wei
         outcomeToAmount[outcomeIdx] += msg.value;
         totalAmount += msg.value;
@@ -111,14 +160,12 @@ contract Market {
         // if nobody wins, arbiter gets everything
         if (outcomeToAmount[outcomeIdx] == 0) {
             result[arbiter] = totalAmount;
-        }
-        else {
-            uint256 pot = totalAmount - outcomeToAmount[outcomeIdx];
+        } else {
             for (uint256 i = 0; i < betters.length; i++) {
                 address better = betters[i];
-                uint256 betAmount = bets[better].outcomes[outcomeIdx];
-                uint256 winAmount = pot * betAmount / outcomeToAmount[outcomeIdx];
-                result[better] = winAmount + betAmount;
+                uint256 winTokens = bets[better].outcomes[outcomeIdx];
+                uint256 winAmount = (totalAmount * winTokens) / tokenTotal;
+                result[better] = winAmount;
             }
         }
 
@@ -128,35 +175,8 @@ contract Market {
     function withdraw() public timedTransitions {
         require(status == Status.Resolved, "market has not been resolved");
 
-        uint amount = result[msg.sender];
+        uint256 amount = result[msg.sender];
         result[msg.sender] = 0;
         msg.sender.transfer(amount);
     }
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
