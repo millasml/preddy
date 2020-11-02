@@ -85,24 +85,24 @@ function MarketEntry(props) {
   const [allMarkets, setAllMarkets] = useState(MOCK_MARKETS);
   const [dataKey, setDataKey] = useState(null);
 
-  useEffect(() => {
-    const contract = drizzle.contracts.MarketManager;
-    if (contract) {
-      // console.log(contract);
-      const _dataKey = contract.methods["markets"].cacheCall();
-      setDataKey(_dataKey);
-    }
-  }, []);
+  // useEffect(() => {
+  //   const contract = drizzle.contracts.MarketManager;
+  //   if (contract) {
+  //     // console.log(contract);
+  //     const _dataKey = contract.methods["markets"].cacheCall();
+  //     setDataKey(_dataKey);
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    // get the contract state from drizzleState
-    const { MarketManager } = drizzleState.contracts;
-    // using the saved `dataKey`, get the variable we're interested in
-    console.log(dataKey);
-    console.log(MarketManager);
-    const markets = MarketManager.markets;
-    console.log(markets);
-  }, [dataKey]);
+  // useEffect(() => {
+  //   // get the contract state from drizzleState
+  //   const { MarketManager } = drizzleState.contracts;
+  //   // using the saved `dataKey`, get the variable we're interested in
+  //   console.log(dataKey);
+  //   console.log(MarketManager);
+  //   const markets = MarketManager.markets;
+  //   console.log(markets);
+  // }, [dataKey]);
 
   return (
     <Card>
