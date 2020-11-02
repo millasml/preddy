@@ -18,7 +18,7 @@ contract Market {
     mapping(uint256 => uint256) outcomeToAmount;
     mapping(address => uint256) result; // stores winnings in Wei
     string public question;
-    bytes outcomes;
+    bytes public outcomes;
     uint256 outcomeCount;
     string public description;
     uint256 public resolutionTimestamp;
@@ -41,7 +41,6 @@ contract Market {
         string memory _description,
         uint256 _resolutionUnixTime
     ) public {
-        outcomes = new bytes(_outcomes.length);
         for (uint256 i=0; i<_outcomes.length; i++) {
             outcomes.push(_outcomes[i]);
         }

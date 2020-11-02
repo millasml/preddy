@@ -24,10 +24,10 @@ contract("Market", async accounts => {
             question,
             description,
             resolutionTimestamp,
-            {from: arbiter}
+            {from: arbiter, gas: 5000000}
         );
 
-        let marketAddress = await instance.markets(accounts[0]);
+        let marketAddress = await instance.markets(0);
         market = await Market.at(marketAddress);
     })
 
@@ -51,12 +51,10 @@ contract("Market", async accounts => {
 
     it("should not place bet as market is closed", async () => {
         await new Promise(r => setTimeout(r, 4000));
-        const res = await market.placeBet(0, {
+        await nodeAssert.rejects(market.placeBet(0, {
             from: accounts[1],
             value: web3.utils.toWei("1", "ether")
-        })
-        console.log(res);
-    });
+        }), /market is not open for bets/, "wrong error message")    });
 
     it("should not resolve market as account is not arbiter", async () => {
         await nodeAssert.rejects(market.resolve(0, {from: accounts[1]}), /only arbiter can resolve the market/, "wrong error message")
