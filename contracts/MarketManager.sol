@@ -12,8 +12,8 @@ contract MarketManager {
     }
 
     function createMarket(
-        bytes32[] memory _outcomes,
-        uint256[] memory _outcomeLengths,
+        bytes memory _outcomes,
+        uint256 outcomeCount,
         address _arbiter,
         string memory _question,
         string memory _description,
@@ -21,7 +21,7 @@ contract MarketManager {
     ) public {
         Market market = new Market(
             _outcomes,
-            _outcomeLengths,
+            outcomeCount,
             _arbiter,
             _question,
             _description,

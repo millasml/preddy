@@ -18,8 +18,8 @@ contract Market {
     mapping(uint256 => uint256) outcomeToAmount;
     mapping(address => uint256) result; // stores winnings in Wei
     string public question;
-    bytes32[] outcomes;
-    uint256[] outcomeLengths;
+    bytes outcomes;
+    uint256 outcomeCount;
     string public description;
     uint256 public resolutionTimestamp;
     address public arbiter;
@@ -34,19 +34,22 @@ contract Market {
     enum Status {Open, Close, Resolved}
 
     constructor(
-        bytes32[] memory _outcomes,
-        uint256[] memory _outcomeLengths,
+        bytes memory _outcomes,
+        uint256 _outcomeCount,
         address _arbiter,
         string memory _question,
         string memory _description,
-        uint256 _resolutionTimestamp
+        uint256 _resolutionUnixTime
     ) public {
-        outcomes = _outcomes;
-        outcomeLengths = _outcomeLengths;
+        outcomes = new bytes(_outcomes.length);
+        for (uint256 i=0; i<_outcomes.length; i++) {
+            outcomes.push(_outcomes[i]);
+        }
+        outcomeCount = _outcomeCount;
         arbiter = _arbiter;
         question = _question;
         description = _description;
-        resolutionTimestamp = _resolutionTimestamp;
+        resolutionTimestamp = _resolutionUnixTime;
         status = Status.Open;
     }
 
@@ -61,14 +64,14 @@ contract Market {
     }
 
     function getNumOutcome() public view returns (uint256){
-        return outcomeLengths.length;
+        return outcomeCount;
     }
 
-    function getOutcome(uint256 i) public view returns (bytes32[] memory, uint256, uint256){
-        uint256 start = i == 0 ? 0 : outcomeLengths[i];
-        uint256 end = i == outcomeLengths.length - 1 ? outcomes.length : outcomeLengths[i + 1];
-        return (outcomes, start, end);
-    }
+    // function getOutcome(uint256 i) public view returns (bytes32[] memory, uint256, uint256){
+    //     uint256 start = i == 0 ? 0 : outcomeLengths[i];
+    //     uint256 end = i == outcomeLengths.length - 1 ? outcomes.length : outcomeLengths[i + 1];
+    //     return (outcomes, start, end);
+    // }
 
     function getStatus() public view returns (string memory){
         if (status == Status.Close) {
