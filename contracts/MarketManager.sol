@@ -4,7 +4,7 @@ pragma solidity >=0.4.21;
 import {Market} from "./Market.sol";
 
 contract MarketManager {
-    mapping(address => Market) public markets;
+    Market[] public markets;
     uint256 reportWindow;
 
     constructor(uint256 _reportWindow) public {
@@ -30,6 +30,6 @@ contract MarketManager {
             _resolutionUnixTime
         );
 
-        markets[msg.sender] = market;
+        markets.push(market);
     }
 }

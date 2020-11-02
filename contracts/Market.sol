@@ -20,7 +20,7 @@ contract Market is Utils {
     mapping(uint256 => uint256) outcomeToAmount;
     mapping(address => uint256) result; // stores winnings in Wei
     string public question;
-    bytes outcomes;
+    bytes public outcomes;
     uint256 outcomeCount;
     string public description;
     uint256 public resolutionTimestamp;
