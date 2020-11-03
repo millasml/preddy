@@ -32,7 +32,6 @@ contract MarketManager {
         );
 
         markets.push(market);
-        return market;
     }
 
     // function that returns all arrays
