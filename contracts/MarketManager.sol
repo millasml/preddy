@@ -30,4 +30,9 @@ contract MarketManager {
 
         markets.push(market);
     }
+
+    // function that returns all arrays
+    function getMarkets() public view returns (Market[] memory) {
+        return markets;
+    }
 }

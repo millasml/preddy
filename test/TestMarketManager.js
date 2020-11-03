@@ -23,7 +23,7 @@ contract("MarketManager", async accounts => {
             {from: arbiter, gas: 2000000}
         )
 
-        let marketAddress = await instance.markets(0)
+        let marketAddress = (await instance.getMarkets())[0]
         let market = await Market.at(marketAddress)
 
         assert.equal(await market.resolutionTimestamp(), resolutionUnixTime, "wrong resolution time")
