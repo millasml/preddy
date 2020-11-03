@@ -5,9 +5,9 @@ import {Market} from "./Market.sol";
 
 contract MarketManager {
     Market[] public markets;
-    uint reportWindow;
+    uint256 reportWindow;
 
-    constructor(uint _reportWindow) public {
+    constructor(uint256 _reportWindow) public {
         reportWindow = _reportWindow;
     }
 
@@ -18,7 +18,7 @@ contract MarketManager {
         string memory _question,
         string memory _description,
         uint256 _resolutionUnixTime
-    ) public {
+    ) public returns (Market) {
         Market market = new Market(
             _outcomes,
             outcomeCount,
@@ -29,6 +29,7 @@ contract MarketManager {
         );
 
         markets.push(market);
+        return market;
     }
 
     // function that returns all arrays

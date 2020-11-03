@@ -20,8 +20,6 @@ export default (props) => {
       {(drizzleContext) => {
         const { drizzle, drizzleState, initialized } = drizzleContext;
 
-        console.log(drizzleState.accounts);
-
         const contract = drizzle.contracts.MarketManager;
 
         const createContract = (
@@ -42,7 +40,7 @@ export default (props) => {
             resolutionUnixTime,
             {
               from: drizzleState.accounts[0],
-              gas: 2000000
+              gas: 2000000,
             }
           );
           setStackId(newStackId);
