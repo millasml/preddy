@@ -13,15 +13,18 @@ contract MarketManager {
 
     function createMarket(
         bytes memory _outcomes,
-        uint256 outcomeCount,
+        uint256 _outcomeCount,
+        uint256[] memory _initialMarket,
         address _arbiter,
         string memory _question,
         string memory _description,
         uint256 _resolutionUnixTime
-    ) public returns (Market) {
-        Market market = new Market(
+    ) public payable {
+        require(_outcomeCount > 1, "there should be at least 2 outcomes");
+        Market market = (new Market).value(msg.value)(
             _outcomes,
-            outcomeCount,
+            _outcomeCount,
+            _initialMarket,
             _arbiter,
             _question,
             _description,
