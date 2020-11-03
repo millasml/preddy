@@ -130,16 +130,7 @@ function MarketEntry(props) {
       <ListGroup variant="flush">
         {allMarketAddresses.length > 0
           ? allMarketAddresses.map((market) => {
-              return (
-                <MarketItem
-                  address={market}
-                  question={market.question}
-                  description={market.description}
-                  endDate={market.endDate}
-                  voteSummary={market.voteSummary}
-                  stakes={market.stakes}
-                />
-              );
+              return <MarketItem address={market} />;
             })
           : "No markets available"}
       </ListGroup>

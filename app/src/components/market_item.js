@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { DrizzleContext } from "@drizzle/react-plugin";
 
 import "./market_item.scss";
@@ -74,7 +75,6 @@ function MarketItem(props) {
   }, [contract, drizzleState]);
 
   const getFormattedDate = (timeInSeconds) => {
-    console.log(timeInSeconds);
     const dateObject = new Date(timeInSeconds * 1000);
     return dateObject.toDateString();
   };
@@ -97,7 +97,9 @@ function MarketItem(props) {
             </Row>
           </Col>
           <Col xs={1} className="see-more align-middle">
-            <FontAwesomeIcon icon={faChevronRight} />
+            <Link to={`/market/${props.address}`}>
+              <FontAwesomeIcon icon={faChevronRight} />
+            </Link>
           </Col>
         </Row>
       </Container>

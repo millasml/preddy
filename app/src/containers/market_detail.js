@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import "./market_detail.scss";
 
@@ -16,66 +16,113 @@ import ListGroup from "react-bootstrap/ListGroup";
 import ResolveModal from "./resolve_modal";
 import NewBetModal from "./new_bet_modal";
 
+import { bytesToStr } from "../utils";
+
+//TO-DO: useEffect not triggered if the link is visited directly.
+
 export default (props) => {
-  const [stackId, setStackId] = useState(null);
-  console.log(props.address); //use this address to get the details
   return (
     <DrizzleContext.Consumer>
       {(drizzleContext) => {
         const { drizzle, drizzleState, initialized } = drizzleContext;
 
-        const contract = drizzle.contracts.MarketManager;
-
-        const getTxStatus = () => {
-          // get the transaction states from the drizzle state
-          const { transactions, transactionStack } = drizzleState;
-
-          // get the transaction hash using our saved `stackId`
-          const txHash = transactionStack[stackId];
-
-          // if transaction hash does not exist, don't display anything
-          if (!txHash) return null;
-
-          console.log(
-            `Transaction status: ${
-              transactions[txHash] && transactions[txHash].status
-            }`
-          );
-
-          // otherwise, return the transaction status
-          return `Transaction status: ${
-            transactions[txHash] && transactions[txHash].status
-          }`;
-        };
-
         if (!initialized) {
           return "Loading...";
         }
-
-        return <MarketDetail {...props} />;
+        return (
+          <MarketDetail
+            {...props}
+            drizzle={drizzle}
+            drizzleState={drizzleState}
+          />
+        );
       }}
     </DrizzleContext.Consumer>
   );
 };
 
 function MarketDetail(props) {
+  const { drizzle, drizzleState } = props;
+
+  const [contract, setContract] = useState(null);
+
+  const [question, setQuestion] = useState("");
+  const [description, setDescription] = useState("");
+  const [resolutionTimestamp, setResolutionTimestamp] = useState(0);
+  const [outcomes, setOutcomes] = useState([]);
+
+  useEffect(() => {
+    if (!contract) {
+      const contract = drizzle.contracts[props.address];
+      setContract(contract);
+    }
+  }, [drizzleState, props.address, drizzle.contracts]);
+
+  useEffect(() => {
+    if (contract) {
+      const questionKey = contract.methods["question"].cacheCall();
+      const descriptionKey = contract.methods["description"].cacheCall();
+      const resolutionTimestampKey = contract.methods[
+        "resolutionTimestamp"
+      ].cacheCall();
+      const arbiterKey = contract.methods["arbiter"].cacheCall();
+      const outcomesKey = contract.methods["outcomes"].cacheCall();
+
+      const currentContractState = drizzleState.contracts[props.address];
+
+      if (currentContractState.question[questionKey]) {
+        setQuestion(currentContractState.question[questionKey].value);
+      }
+      if (currentContractState.description[descriptionKey]) {
+        setDescription(currentContractState.description[descriptionKey].value);
+      }
+      if (currentContractState.resolutionTimestamp[resolutionTimestampKey]) {
+        setResolutionTimestamp(
+          currentContractState.resolutionTimestamp[resolutionTimestampKey].value
+        );
+      }
+
+      if (currentContractState.outcomes[outcomesKey]) {
+        const outcomesBytes = currentContractState.outcomes[outcomesKey].value;
+        setOutcomes(
+          getOutcomeStrings(outcomesBytes).map((outcome) => ({
+            outcome,
+            percentage: 0.3,
+          }))
+        );
+      }
+    }
+  }, [contract, drizzleState, props.address]);
+
+  const getFormattedDate = (timeInSeconds) => {
+    const dateObject = new Date(timeInSeconds * 1000);
+    return dateObject.toDateString();
+  };
+
+  const getTimeLeft = (timeInSeconds) => {
+    const difference = timeInSeconds * 1000 - Date.now();
+    return Math.floor(difference / 86400000);
+  };
+
+  const getOutcomeStrings = (outcomeBytes) => {
+    const stringArr = bytesToStr(outcomeBytes);
+    return stringArr;
+  };
+
   return (
     <Container className="market-detail">
       <Card>
-        <Card.Title>{props.question}</Card.Title>
-        <Card.Subtitle>{props.description}</Card.Subtitle>
+        <Card.Title>{question}</Card.Title>
+        <Card.Subtitle>{description}</Card.Subtitle>
         <br />
         <Row>
           <Col className="text-center">
             <h6>Closing Date</h6>
-            {new Date(props.endDate).toDateString()}
+            {getFormattedDate(resolutionTimestamp)}
           </Col>
           <Col className="text-center">
             <h6>Time Remaining</h6>
-            {Math.floor(
-              (props.endDate - Date.now()) / (1000 * 60 * 60 * 24)
-            )}{" "}
-            Days Left
+            {getTimeLeft(resolutionTimestamp)} Days Left
           </Col>
           <Col className="text-center">
             <Badge className="status">{props.isOpen ? "OPEN" : "CLOSED"}</Badge>
@@ -107,9 +154,9 @@ function MarketDetail(props) {
       <Card>
         <Card.Title>Outcome and Probabilites</Card.Title>
         <ListGroup variant="flush">
-          {props.voteDetails.map((possibility) => {
+          {outcomes.map((possibility, index) => {
             return (
-              <ListGroup.Item>
+              <ListGroup.Item key={index}>
                 <Row>
                   <Col>{possibility.outcome}</Col>
                   <Col>
@@ -121,7 +168,7 @@ function MarketDetail(props) {
                     />
                   </Col>
                   <Col xs={1}>
-                    <NewBetModal outcome={possibility.outcome}>
+                    <NewBetModal outcome={index}>
                       <Button>Bet</Button>
                     </NewBetModal>
                   </Col>
