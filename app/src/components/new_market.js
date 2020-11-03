@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { DrizzleContext } from "@drizzle/react-plugin";
 
@@ -11,6 +11,8 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import FormControl from "react-bootstrap/FormControl";
 import ModalFooter from "react-bootstrap/ModalFooter";
+import InputGroup from "react-bootstrap/InputGroup";
+
 import BetOptions from "./bet_options";
 
 export default (props) => {
@@ -88,8 +90,13 @@ function AddNewMarket(props) {
   const [question, setQuestion] = useState(null);
   const [description, setDescription] = useState(null);
   const [outcomes, setOutcomes] = useState(null);
+  const [initialLiquidity, setInitialLiquidity] = useState(null);
   const [expiryDate, setExpiryDate] = useState(null);
   const [arbiter, setArbiter] = useState(null);
+
+  useEffect(() => {
+    console.log(outcomes);
+  });
 
   return (
     <Form
@@ -127,6 +134,20 @@ function AddNewMarket(props) {
         <Form.Group as={Col}>
           <Form.Label>Outcomes</Form.Label>
           <BetOptions updateOutcomes={setOutcomes} />
+        </Form.Group>
+      </Form.Row>
+      <Form.Row>
+        <Form.Label>Total Initial Liquity</Form.Label>
+        <Form.Group as={InputGroup}>
+          <FormControl
+            placeholder=""
+            aria-label="total-liquidity"
+            onChange={(event) => setInitialLiquidity(event.target.value)}
+            required
+          />
+          <InputGroup.Append>
+            <InputGroup.Text>Ether</InputGroup.Text>
+          </InputGroup.Append>
         </Form.Group>
       </Form.Row>
       <Form.Row>

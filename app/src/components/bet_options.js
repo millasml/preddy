@@ -14,12 +14,25 @@ import { faMinus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 function Option(props) {
+  const [description, setDescription] = useState("");
+  const [liquidity, setLiquidity] = useState(0);
+
+  useEffect(() => {
+    props.onChange({ description, liquidity });
+  }, [description, liquidity]);
+
   return (
     <Form.Group as={InputGroup}>
       <FormControl
         placeholder="Option description"
         aria-label="question"
-        onChange={(event) => props.onChange(event.target.value)}
+        onChange={(event) => setDescription(event.target.value)}
+        required
+      />
+      <FormControl
+        placeholder="initial liquidity"
+        aria-label="liquidity"
+        onChange={(event) => setLiquidity(event.target.value)}
         required
       />
       <InputGroup.Append>
@@ -32,7 +45,7 @@ function Option(props) {
 }
 
 export default function BetOptions(props) {
-  const [options, setOptions] = useState(["", ""]);
+  const [options, setOptions] = useState([{}, {}]);
 
   useEffect(() => {
     props.updateOutcomes(options);
