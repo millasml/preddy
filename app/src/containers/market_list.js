@@ -2,15 +2,14 @@ import React, { useState, useEffect } from "react";
 
 import { DrizzleContext } from "@drizzle/react-plugin";
 import Market from "../contracts/Market.json";
-import Web3 from "web3";
-
+import { web3 } from "../drizzleOptions";
 import "./market_list.scss";
 
 import ListGroup from "react-bootstrap/ListGroup";
 import Card from "react-bootstrap/Card";
 import MarketItem from "../components/market_item";
 
-var web3 = new Web3(Web3.givenProvider || "ws://localhost:8546");
+// var web3 = new Web3(Web3.givenProvider || "ws://localhost:8546");
 
 const MOCK_MARKETS = [
   {
@@ -74,7 +73,7 @@ export default (props) => {
           return "Loading...";
         }
         return (
-          <MarketEntry
+          <MarketList
             {...props}
             drizzle={drizzle}
             drizzleState={drizzleState}
@@ -85,7 +84,7 @@ export default (props) => {
   );
 };
 
-function MarketEntry(props) {
+function MarketList(props) {
   const { drizzle, drizzleState } = props;
   const [allMarketAddresses, setAllMarketAddresses] = useState([]);
   const [dataKey, setDataKey] = useState(null);
@@ -129,8 +128,8 @@ function MarketEntry(props) {
       <Card.Title>Markets</Card.Title>
       <ListGroup variant="flush">
         {allMarketAddresses.length > 0
-          ? allMarketAddresses.map((market) => {
-              return <MarketItem address={market} />;
+          ? allMarketAddresses.map((market, index) => {
+              return <MarketItem address={market} key={index} />;
             })
           : "No markets available"}
       </ListGroup>

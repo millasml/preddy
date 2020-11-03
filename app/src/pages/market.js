@@ -1,9 +1,6 @@
 import React from "react";
-import { newContextComponents } from "@drizzle/react-components";
 import "./market.scss";
 import MarketDetail from "../containers/market_detail";
-
-const { AccountData, ContractData, ContractForm } = newContextComponents;
 
 const MOCK_MARKET = {
   question: "Will Joe Biden Win the Elections",

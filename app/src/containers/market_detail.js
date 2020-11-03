@@ -56,7 +56,7 @@ function MarketDetail(props) {
       const contract = drizzle.contracts[props.address];
       setContract(contract);
     }
-  }, [drizzleState, props.address, drizzle.contracts]);
+  }, [props.address, drizzle.contracts]);
 
   useEffect(() => {
     if (contract) {
@@ -143,6 +143,7 @@ function MarketDetail(props) {
                   (possibility) => possibility.outcome
                 )}
                 title={props.question}
+                address={props.address}
               >
                 <Button>Resolve</Button>
               </ResolveModal>
@@ -168,7 +169,11 @@ function MarketDetail(props) {
                     />
                   </Col>
                   <Col xs={1}>
-                    <NewBetModal outcome={index}>
+                    <NewBetModal
+                      index={index}
+                      outcome={possibility.outcome}
+                      address={props.address}
+                    >
                       <Button>Bet</Button>
                     </NewBetModal>
                   </Col>

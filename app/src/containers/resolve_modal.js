@@ -26,7 +26,11 @@ export default function OpenMarketModal(props) {
         </Modal.Header>
         <Modal.Body>
           Resolve the market "{props.title}"
-          <Resolve onClose={handleClose} outcomes={props.outcomes} />
+          <Resolve
+            onClose={handleClose}
+            outcomes={props.outcomes}
+            address={props.address}
+          />
         </Modal.Body>
       </Modal>
     </>
