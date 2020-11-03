@@ -48,11 +48,13 @@ function MarketDetail(props) {
   const [descriptionKey, setDescriptionKey] = useState(null);
   const [resolutionTimestampKey, setResolutionTimestampKey] = useState(null);
   const [outcomesKey, setOutcomesKey] = useState(null);
+  const [statusKey, setStatusKey] = useState(null);
 
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
   const [resolutionTimestamp, setResolutionTimestamp] = useState(0);
   const [outcomes, setOutcomes] = useState([]);
+  const [status, setStatus] = useState("Open");
 
   useEffect(() => {
     const contract = drizzle.contracts[props.address];
@@ -67,6 +69,8 @@ function MarketDetail(props) {
       setResolutionTimestampKey(resolutionTimestampKey);
       const outcomesKey = contract.methods["outcomes"].cacheCall();
       setOutcomesKey(outcomesKey);
+      const statusKey = contract.methods["getStatus"].cacheCall();
+      setStatusKey(statusKey);
     }
   }, [drizzle.contracts[props.address]]);
 
@@ -106,6 +110,13 @@ function MarketDetail(props) {
     }
   }, [outcomesKey, drizzleState]);
 
+  useEffect(() => {
+    const currentContractState = drizzleState.contracts[props.address];
+    if (currentContractState.getStatus[statusKey]) {
+      setStatus(currentContractState.getStatus[statusKey].value);
+    }
+  }, [statusKey, drizzleState]);
+
   const getFormattedDate = (timeInSeconds) => {
     const dateObject = new Date(timeInSeconds * 1000);
     return dateObject.toDateString();
@@ -137,11 +148,11 @@ function MarketDetail(props) {
             {getTimeLeft(resolutionTimestamp)} Days Left
           </Col>
           <Col className="text-center">
-            <Badge className="status">{props.isOpen ? "OPEN" : "CLOSED"}</Badge>
+            <Badge className="status">{status}</Badge>
           </Col>
         </Row>
       </Card>
-      {props.isOpen && (
+      {status == "CLOSED" && (
         <Card>
           <Row>
             <Col xs={4} className="text-center">
