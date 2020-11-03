@@ -44,7 +44,10 @@ export default (props) => {
 function MarketDetail(props) {
   const { drizzle, drizzleState } = props;
 
-  const [contract, setContract] = useState(null);
+  const [questionKey, setQuestionKey] = useState(null);
+  const [descriptionKey, setDescriptionKey] = useState(null);
+  const [resolutionTimestampKey, setResolutionTimestampKey] = useState(null);
+  const [outcomesKey, setOutcomesKey] = useState(null);
 
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
@@ -52,47 +55,56 @@ function MarketDetail(props) {
   const [outcomes, setOutcomes] = useState([]);
 
   useEffect(() => {
-    if (!contract) {
-      const contract = drizzle.contracts[props.address];
-      setContract(contract);
-    }
-  }, [props.address, drizzle.contracts]);
-
-  useEffect(() => {
+    const contract = drizzle.contracts[props.address];
     if (contract) {
       const questionKey = contract.methods["question"].cacheCall();
+      setQuestionKey(questionKey);
       const descriptionKey = contract.methods["description"].cacheCall();
+      setDescriptionKey(descriptionKey);
       const resolutionTimestampKey = contract.methods[
         "resolutionTimestamp"
       ].cacheCall();
-      const arbiterKey = contract.methods["arbiter"].cacheCall();
+      setResolutionTimestampKey(resolutionTimestampKey);
       const outcomesKey = contract.methods["outcomes"].cacheCall();
-
-      const currentContractState = drizzleState.contracts[props.address];
-
-      if (currentContractState.question[questionKey]) {
-        setQuestion(currentContractState.question[questionKey].value);
-      }
-      if (currentContractState.description[descriptionKey]) {
-        setDescription(currentContractState.description[descriptionKey].value);
-      }
-      if (currentContractState.resolutionTimestamp[resolutionTimestampKey]) {
-        setResolutionTimestamp(
-          currentContractState.resolutionTimestamp[resolutionTimestampKey].value
-        );
-      }
-
-      if (currentContractState.outcomes[outcomesKey]) {
-        const outcomesBytes = currentContractState.outcomes[outcomesKey].value;
-        setOutcomes(
-          getOutcomeStrings(outcomesBytes).map((outcome) => ({
-            outcome,
-            percentage: 0.3,
-          }))
-        );
-      }
+      setOutcomesKey(outcomesKey);
     }
-  }, [contract, drizzleState, props.address]);
+  }, [drizzle.contracts[props.address]]);
+
+  useEffect(() => {
+    const currentContractState = drizzleState.contracts[props.address];
+    if (currentContractState.question[questionKey]) {
+      setQuestion(currentContractState.question[questionKey].value);
+    }
+  }, [questionKey, drizzleState]);
+
+  useEffect(() => {
+    const currentContractState = drizzleState.contracts[props.address];
+    if (currentContractState.description[descriptionKey]) {
+      setDescription(currentContractState.description[descriptionKey].value);
+    }
+  }, [descriptionKey, drizzleState]);
+
+  useEffect(() => {
+    const currentContractState = drizzleState.contracts[props.address];
+    if (currentContractState.resolutionTimestamp[resolutionTimestampKey]) {
+      setResolutionTimestamp(
+        currentContractState.resolutionTimestamp[resolutionTimestampKey].value
+      );
+    }
+  }, [resolutionTimestampKey, drizzleState]);
+
+  useEffect(() => {
+    const currentContractState = drizzleState.contracts[props.address];
+    if (currentContractState.outcomes[outcomesKey]) {
+      const outcomesBytes = currentContractState.outcomes[outcomesKey].value;
+      setOutcomes(
+        getOutcomeStrings(outcomesBytes).map((outcome) => ({
+          outcome,
+          percentage: 0.3,
+        }))
+      );
+    }
+  }, [outcomesKey, drizzleState]);
 
   const getFormattedDate = (timeInSeconds) => {
     const dateObject = new Date(timeInSeconds * 1000);
