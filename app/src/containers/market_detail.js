@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import "./market_detail.scss";
 
 import { DrizzleContext } from "@drizzle/react-plugin";
+import Market from "../contracts/Market.json";
 import { web3 } from "../drizzleOptions";
 
 import Container from "react-bootstrap/Container";
@@ -29,24 +30,24 @@ export default (props) => {
       {(drizzleContext) => {
         const { drizzle, drizzleState, initialized } = drizzleContext;
 
-        const contract = drizzle.contracts[props.address];
-
-        const changeMarketStatus = (idx) => {
-          const newStackId = contract.methods["setStatus"].cacheSend(idx, {
-            from: drizzleState.accounts[0],
-            gas: 5000000,
-          });
-        };
-
         if (!initialized) {
           return "Loading...";
         }
+
+        if (!(props.address in drizzle.contracts)) {
+          const contractConfig = {
+            contractName: props.address,
+            web3Contract: new web3.eth.Contract(Market.abi, props.address),
+          };
+          drizzle.addContract(contractConfig);
+        }
+        const contract = drizzle.contracts[props.address];
+        console.log(contract);
         return (
           <MarketDetail
             {...props}
             drizzle={drizzle}
             drizzleState={drizzleState}
-            changeMarketStatus={changeMarketStatus}
           />
         );
       }}
@@ -64,7 +65,6 @@ function MarketDetail(props) {
   const [statusKey, setStatusKey] = useState(null);
   const [arbiterKey, setArbiterKey] = useState(null);
   const [winningsKey, setWinningsKey] = useState(null);
-  const [changeStatusKey, setChangeStatusKey] = useState(null);
 
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
@@ -73,6 +73,17 @@ function MarketDetail(props) {
   const [status, setStatus] = useState("Open");
   const [arbiter, setArbiter] = useState("");
   const [winnings, setWinnings] = useState(0);
+
+  const changeMarketStatus = useCallback(
+    (idx) => {
+      const contract = drizzle.contracts[props.address];
+      const newStackId = contract.methods["setStatus"].cacheSend(idx, {
+        from: drizzleState.accounts[0],
+        gas: 5000000,
+      });
+    },
+    [drizzle, drizzleState]
+  );
 
   useEffect(() => {
     const contract = drizzle.contracts[props.address];
@@ -99,32 +110,49 @@ function MarketDetail(props) {
   }, [drizzle.contracts[props.address]]);
 
   useEffect(() => {
-    const currentContractState = drizzleState.contracts[props.address];
-    if (currentContractState.question[questionKey]) {
-      setQuestion(currentContractState.question[questionKey].value);
-    }
-  }, [questionKey, drizzleState]);
-
-  useEffect(() => {
-    const currentContractState = drizzleState.contracts[props.address];
-    if (currentContractState.description[descriptionKey]) {
-      setDescription(currentContractState.description[descriptionKey].value);
-    }
-  }, [descriptionKey, drizzleState]);
-
-  useEffect(() => {
-    const currentContractState = drizzleState.contracts[props.address];
-    if (currentContractState.resolutionTimestamp[resolutionTimestampKey]) {
-      setResolutionTimestamp(
-        currentContractState.resolutionTimestamp[resolutionTimestampKey].value
+    if (
+      questionKey &&
+      drizzleState.contracts[props.address].question[questionKey]
+    ) {
+      setQuestion(
+        drizzleState.contracts[props.address].question[questionKey].value
       );
     }
-  }, [resolutionTimestampKey, drizzleState]);
+  }, [questionKey, drizzleState.contracts[props.address]]);
 
   useEffect(() => {
-    const currentContractState = drizzleState.contracts[props.address];
-    if (currentContractState.outcomes[outcomesKey]) {
-      const outcomesBytes = currentContractState.outcomes[outcomesKey].value;
+    if (
+      descriptionKey &&
+      drizzleState.contracts[props.address].description[descriptionKey]
+    ) {
+      setDescription(
+        drizzleState.contracts[props.address].description[descriptionKey].value
+      );
+    }
+  }, [descriptionKey, drizzleState.contracts[props.address]]);
+
+  useEffect(() => {
+    if (
+      resolutionTimestampKey &&
+      drizzleState.contracts[props.address].resolutionTimestamp[
+        resolutionTimestampKey
+      ]
+    ) {
+      setResolutionTimestamp(
+        drizzleState.contracts[props.address].resolutionTimestamp[
+          resolutionTimestampKey
+        ].value
+      );
+    }
+  }, [resolutionTimestampKey, drizzleState.contracts[props.address]]);
+
+  useEffect(() => {
+    if (
+      outcomesKey &&
+      drizzleState.contracts[props.address].outcomes[outcomesKey]
+    ) {
+      const outcomesBytes =
+        drizzleState.contracts[props.address].outcomes[outcomesKey].value;
       setOutcomes(
         getOutcomeStrings(outcomesBytes).map((outcome) => ({
           outcome,
@@ -132,28 +160,41 @@ function MarketDetail(props) {
         }))
       );
     }
-  }, [outcomesKey, drizzleState]);
+  }, [outcomesKey, drizzleState.contracts[props.address]]);
 
   useEffect(() => {
-    const currentContractState = drizzleState.contracts[props.address];
-    if (currentContractState.getStatus[statusKey]) {
-      setStatus(currentContractState.getStatus[statusKey].value);
+    if (
+      statusKey &&
+      drizzleState.contracts[props.address].getStatus[statusKey]
+    ) {
+      setStatus(
+        drizzleState.contracts[props.address].getStatus[statusKey].value
+      );
     }
-  }, [statusKey, drizzleState]);
+  }, [statusKey, drizzleState.contracts[props.address]]);
 
   useEffect(() => {
-    const currentContractState = drizzleState.contracts[props.address];
-    if (currentContractState.arbiter[arbiterKey]) {
-      setArbiter(currentContractState.arbiter[arbiterKey].value);
+    if (
+      arbiterKey &&
+      drizzleState.contracts[props.address].arbiter[arbiterKey]
+    ) {
+      setArbiter(
+        drizzleState.contracts[props.address].arbiter[arbiterKey].value
+      );
     }
-  }, [arbiterKey, drizzleState]);
+  }, [arbiterKey, drizzleState.contracts[props.address]]);
 
   useEffect(() => {
-    const currentContractState = drizzleState.contracts[props.address];
-    if (currentContractState.getWinnings[winningsKey]) {
-      setWinnings(currentContractState.getWinnings[winningsKey].value ?? 0);
+    if (
+      winningsKey &&
+      drizzleState.contracts[props.address].getWinnings[winningsKey]
+    ) {
+      setWinnings(
+        drizzleState.contracts[props.address].getWinnings[winningsKey].value ??
+          0
+      );
     }
-  }, [winningsKey, drizzleState]);
+  }, [winningsKey, drizzleState.contracts[props.address]]);
 
   const getFormattedDate = (timeInSeconds) => {
     const dateObject = new Date(timeInSeconds * 1000);
@@ -168,6 +209,11 @@ function MarketDetail(props) {
   const getOutcomeStrings = (outcomeBytes) => {
     const stringArr = bytesToStr(outcomeBytes);
     return stringArr;
+  };
+
+  const debugButton = () => {
+    console.log(questionKey);
+    console.log(descriptionKey);
   };
 
   return (
@@ -207,7 +253,7 @@ function MarketDetail(props) {
             <Col>
               <ResolveModal
                 outcomes={outcomes.map((possibility) => possibility.outcome)}
-                title={props.question}
+                title={question}
                 address={props.address}
               >
                 <Button>Resolve</Button>
@@ -274,14 +320,14 @@ function MarketDetail(props) {
             <Button
               variant="secondary"
               onClick={() => {
-                props.changeMarketStatus(0);
+                changeMarketStatus(0);
               }}
             >
               Open
             </Button>
             <Button
               onClick={() => {
-                props.changeMarketStatus(1);
+                changeMarketStatus(1);
               }}
             >
               Close
@@ -289,12 +335,15 @@ function MarketDetail(props) {
             <Button
               variant="secondary"
               onClick={() => {
-                props.changeMarketStatus(2);
+                changeMarketStatus(2);
               }}
             >
               Resolve
             </Button>
           </ButtonGroup>
+          <Button variant="warning" onClick={debugButton}>
+            Debug
+          </Button>
         </Card>
       )}
     </Container>

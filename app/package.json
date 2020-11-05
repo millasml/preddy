@@ -19,7 +19,8 @@
     "sass": "^1.28.0"
   },
   "scripts": {
-    "start:debug": "set REACT_APP_DEBUG=true && react-scripts start",
+    "start": "react-scripts start",
+    "start:debug": "set REACT_APP_DEBUG=true&& react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

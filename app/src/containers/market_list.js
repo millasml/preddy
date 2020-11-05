@@ -9,60 +9,6 @@ import ListGroup from "react-bootstrap/ListGroup";
 import Card from "react-bootstrap/Card";
 import MarketItem from "../components/market_item";
 
-// var web3 = new Web3(Web3.givenProvider || "ws://localhost:8546");
-
-const MOCK_MARKETS = [
-  {
-    question: "Will Joe Biden Win the Elections",
-    description: "see the question",
-    endDate: "2021",
-    voteSummary: "Yes (65.38%)",
-    stakes: "112576.06 DAI",
-  },
-  {
-    question: "Will Joe Biden Win the Elections",
-    description: "see the question",
-    endDate: "2021",
-    voteSummary: "Yes (65.38%)",
-    stakes: "112576.06 DAI",
-  },
-  {
-    question: "Will Joe Biden Win the Elections",
-    description: "see the question",
-    endDate: "2021",
-    voteSummary: "Yes (65.38%)",
-    stakes: "112576.06 DAI",
-  },
-  {
-    question: "Will Joe Biden Win the Elections",
-    description: "see the question",
-    endDate: "2021",
-    voteSummary: "Yes (65.38%)",
-    stakes: "112576.06 DAI",
-  },
-  {
-    question: "Will Joe Biden Win the Elections",
-    description: "see the question",
-    endDate: "2021",
-    voteSummary: "Yes (65.38%)",
-    stakes: "112576.06 DAI",
-  },
-  {
-    question: "Will Joe Biden Win the Elections",
-    description: "see the question",
-    endDate: "2021",
-    voteSummary: "Yes (65.38%)",
-    stakes: "112576.06 DAI",
-  },
-  {
-    question: "Will Joe Biden Win the Elections",
-    description: "see the question",
-    endDate: "2021",
-    voteSummary: "Yes (65.38%)",
-    stakes: "112576.06 DAI",
-  },
-];
-
 export default (props) => {
   return (
     <DrizzleContext.Consumer>
@@ -114,7 +60,7 @@ function MarketList(props) {
   useEffect(() => {
     allMarketAddresses.forEach((address) => {
       try {
-        var contractConfig = {
+        const contractConfig = {
           contractName: address,
           web3Contract: new web3.eth.Contract(Market.abi, address),
         };
