@@ -93,12 +93,22 @@ contract Market is BMath {
     }
 
     function getStatus() public view returns (string memory) {
-        if (status == Status.Close) {
-            return "Close";
-        } else if (status == Status.Open) {
+        if (status == Status.Open) {
             return "Open";
+        } else if (status == Status.Close){
+            return "Close";
         } else {
             return "Resolved";
+        }
+    }
+
+    function setStatus(uint idx) public{
+        if (Status(idx) == Status.Open) {
+            status = Status.Open;
+        } else if (Status(idx) == Status.Close){
+            status = Status.Close;
+        } else {
+            status = Status.Resolved;
         }
     }
 
