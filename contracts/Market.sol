@@ -36,8 +36,10 @@ contract Market is BMath {
     uint256 result; // resolved outcome
     address[] public betters;
 
-    // tokenCount[i] is the number of liquid tokens in outcome[i]
-    uint256[] tokenCounts;
+    // liquidTokens[i] is the number of liquid tokens in outcome[i]
+    uint256[] liquidTokens;
+    // totalTokens[i] is the total number of tokens in outcome [i]
+    uint256[] totalTokens;
     // totalAmount is the wei of all bets.
     // it is also the pool token in the Balancer scheme.
     uint256 totalAmount;
@@ -69,7 +71,8 @@ contract Market is BMath {
         for (uint256 i = 0; i < initialMarket.length; i++) {
             require(initialMarket[i] != 0, "Initial market options must be >0");
             uint256 _tokens = itob(initialMarket[i]);
-            tokenCounts.push(_tokens);
+            liquidTokens.push(_tokens);
+            totalTokens.push(_tokens);
             tokenTotal = badd(tokenTotal, _tokens);
         }
         // we require the sum of tokens to equal the amount of wei sent in
@@ -79,7 +82,11 @@ contract Market is BMath {
         //     "Initial market options must sum to value sent"
         // );
         totalAmount = poolTokens;
-        tokenWeight = BONE / outcomeCount;
+        tokenWeight = bdiv(BONE, itob(outcomeCount));
+    }
+
+    function getTokenWeight() public view returns (uint256) {
+        return tokenWeight;
     }
 
     // Perform timed transitions. Be sure to mention
@@ -117,29 +124,33 @@ contract Market is BMath {
         view
         returns (uint256[] memory)
     {
-        return bets[better].outcomes;
+        uint256[] memory shares = new uint256[](bets[better].outcomes.length);
+        for (uint256 i = 0; i < bets[better].outcomes.length; i++) {
+            shares[i] = btoi(bets[better].outcomes[i]);
+        }
+        return shares;
     }
 
-    function getTokenCounts() public view returns (uint256[] memory) {
-        return tokenCounts;
+    function getLiquidTokens() public view returns (uint256[] memory) {
+        return liquidTokens;
     }
 
     // returns array representing better's holdings in terms of wei
-    function getBetterValues(address better)
+    function getBetValues(address better)
         public
         view
         returns (uint256[] memory)
     {
         uint256[] memory values = new uint256[](outcomeCount);
-        for (uint256 i = 0; i < tokenCounts.length; i++) {
+        for (uint256 i = 0; i < liquidTokens.length; i++) {
             if (status == Status.Resolved) {
                 if (i == result) {
                     uint256 share = bdiv(
-                        tokenCounts[i],
-                        bets[better].outcomes[i]
+                        bets[better].outcomes[i],
+                        totalTokens[i]
                     );
                     uint256 value = bmul(totalAmount, share);
-                    values[i] = value;
+                    values[i] = btoi(value);
                 } else {
                     values[i] = 0;
                 }
@@ -149,14 +160,14 @@ contract Market is BMath {
                     values[i] = 0;
                 } else {
                     uint256 shareValue = calcPoolOutGivenSingleIn(
-                        tokenCounts[i],
+                        liquidTokens[i],
                         tokenWeight,
                         totalAmount,
                         BONE,
                         share,
                         0
                     );
-                    values[i] = shareValue;
+                    values[i] = btoi(shareValue);
                 }
             }
         }
@@ -174,27 +185,31 @@ contract Market is BMath {
         }
         // Do adjustments to all tokens as a "liquidity event"
         uint256 newPoolTokens = itob(msg.value);
-        for (uint256 i = 0; i < tokenCounts.length; i++) {
+        for (uint256 i = 0; i < liquidTokens.length; i++) {
             uint256 extraTokens = calcNewTokenForPoolDeposit(
                 newPoolTokens,
                 totalAmount,
-                tokenCounts[i]
+                liquidTokens[i]
             );
-            tokenCounts[i] += extraTokens;
+            liquidTokens[i] += extraTokens;
+            totalTokens[i] += extraTokens;
         }
-        totalAmount += newPoolTokens;
+        totalAmount = badd(totalAmount, newPoolTokens);
         // Using the above pool tokens, convert all into outcomeIdx tokens
         uint256 outcomeShareTokens = calcSingleOutGivenPoolIn(
-            tokenCounts[outcomeIdx],
+            liquidTokens[outcomeIdx],
             tokenWeight,
             totalAmount,
             BONE,
             newPoolTokens,
             0 // TODO: add swap fee?
         );
-        bets[msg.sender].outcomes[outcomeIdx] += outcomeShareTokens;
-        tokenCounts[outcomeIdx] = bsub(
-            tokenCounts[outcomeIdx],
+        bets[msg.sender].outcomes[outcomeIdx] = badd(
+            bets[msg.sender].outcomes[outcomeIdx],
+            outcomeShareTokens
+        );
+        liquidTokens[outcomeIdx] = bsub(
+            liquidTokens[outcomeIdx],
             outcomeShareTokens
         );
     }
@@ -202,8 +217,8 @@ contract Market is BMath {
     function getWinnings(address better) public view returns (uint256) {
         require(status == Status.Resolved, "market is not resolved yet");
         uint256 share = bdiv(
-            tokenCounts[result],
-            bets[better].outcomes[result]
+            bets[better].outcomes[result],
+            totalTokens[result]
         );
         uint256 value = bmul(totalAmount, share);
         return btoi(value);
