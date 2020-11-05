@@ -142,7 +142,7 @@ contract Market is BMath {
         return shares;
     }
 
-    function getCurrentBetAmount(address better)
+    function getBetterBetAmounts(address better)
         public
         view
         returns (uint256[] memory)
@@ -150,7 +150,7 @@ contract Market is BMath {
         return bets[better].spending;
     }
 
-    function getPotentialWinnings(address better)
+    function getBetterPotentialWinnings(address better)
         public
         view
         returns (uint256[] memory)
