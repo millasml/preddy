@@ -92,7 +92,9 @@ function MarketList(props) {
   useEffect(() => {
     const contract = drizzle.contracts.MarketManager;
     if (contract) {
-      const _dataKey = contract.methods["getMarkets"].cacheCall();
+      const _dataKey = contract.methods["getMarkets"].cacheCall({
+        gas: 5000000,
+      });
       setDataKey(_dataKey);
     }
   }, []);

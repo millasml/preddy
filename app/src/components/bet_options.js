@@ -32,6 +32,7 @@ function Option(props) {
       <FormControl
         placeholder="initial liquidity"
         aria-label="liquidity"
+        type="number"
         onChange={(event) => setLiquidity(event.target.value)}
         required
       />

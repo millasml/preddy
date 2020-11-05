@@ -14,6 +14,7 @@ import ModalFooter from "react-bootstrap/ModalFooter";
 import InputGroup from "react-bootstrap/InputGroup";
 
 import BetOptions from "./bet_options";
+import { web3 } from "../drizzleOptions";
 
 export default (props) => {
   const [stackId, setStackId] = useState(null);
@@ -27,22 +28,38 @@ export default (props) => {
         const createContract = (
           question,
           description,
-          outcomeStrings,
+          outcomePairs,
+          initialLiquidity,
           expiryDate,
           arbiter
         ) => {
+          const outcomeStrings = outcomePairs.map(
+            ({ description }) => description
+          );
+          const outcomeShares = outcomePairs.map(({ liquidity }) =>
+            parseInt(liquidity)
+          );
+          initialLiquidity = parseInt(initialLiquidity);
+          const initialMarket = outcomeShares.map((s) => {
+            const mkt = initialLiquidity * (s / 100);
+            return web3.utils.toWei(mkt.toString(), "ether");
+          });
           const [outcomes, outcomeLengths] = strArrToBytes(outcomeStrings);
-          const resolutionUnixTime = new Date(expiryDate).valueOf() / 1000;
+          const resolutionUnixTime = Math.floor(
+            new Date(expiryDate).valueOf() / 1000
+          );
           const newStackId = contract.methods["createMarket"].cacheSend(
             outcomes,
             outcomeLengths,
+            initialMarket,
             arbiter,
             question,
             description,
             resolutionUnixTime,
             {
               from: drizzleState.accounts[0],
-              gas: 2000000,
+              gas: 5000000,
+              value: web3.utils.toWei(initialLiquidity.toString(), "ether"),
             }
           );
           setStackId(newStackId);
@@ -94,15 +111,18 @@ function AddNewMarket(props) {
   const [expiryDate, setExpiryDate] = useState(null);
   const [arbiter, setArbiter] = useState(null);
 
-  useEffect(() => {
-    console.log(outcomes);
-  });
-
   return (
     <Form
       onSubmit={(e) => {
         e.preventDefault();
-        props.onSubmit(question, description, outcomes, expiryDate, arbiter);
+        props.onSubmit(
+          question,
+          description,
+          outcomes,
+          initialLiquidity,
+          expiryDate,
+          arbiter
+        );
         // props.onClose();
       }}
       className="new-market-form"
