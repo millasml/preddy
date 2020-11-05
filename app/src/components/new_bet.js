@@ -68,11 +68,6 @@ function NewBet(props) {
         transactions[txHash] && transactions[txHash].status
       }`
     );
-
-    // otherwise, return the transaction status
-    return `Transaction status: ${
-      transactions[txHash] && transactions[txHash].status
-    }`;
   };
 
   return (
@@ -105,7 +100,9 @@ function NewBet(props) {
           <Button type="submit">Place Bet</Button>
         </Form.Row>
       </ModalFooter>
-      <Button onClick={getTxStatus}>Get Txn Status</Button>
+      {process.env.REACT_APP_DEBUG === "true" && (
+        <Button onClick={getTxStatus}>Get Txn Status</Button>
+      )}
     </Form>
   );
 }

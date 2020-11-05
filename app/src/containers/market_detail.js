@@ -267,34 +267,36 @@ function MarketDetail(props) {
           })}
         </ListGroup>
       </Card>
-      <Card>
-        <Card.Title>Set Market State</Card.Title>
-        <ButtonGroup>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              props.changeMarketStatus(0);
-            }}
-          >
-            Open
-          </Button>
-          <Button
-            onClick={() => {
-              props.changeMarketStatus(1);
-            }}
-          >
-            Close
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => {
-              props.changeMarketStatus(2);
-            }}
-          >
-            Resolve
-          </Button>
-        </ButtonGroup>
-      </Card>
+      {process.env.REACT_APP_DEBUG === "true" && (
+        <Card>
+          <Card.Title>Set Market State</Card.Title>
+          <ButtonGroup>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                props.changeMarketStatus(0);
+              }}
+            >
+              Open
+            </Button>
+            <Button
+              onClick={() => {
+                props.changeMarketStatus(1);
+              }}
+            >
+              Close
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                props.changeMarketStatus(2);
+              }}
+            >
+              Resolve
+            </Button>
+          </ButtonGroup>
+        </Card>
+      )}
     </Container>
   );
 }

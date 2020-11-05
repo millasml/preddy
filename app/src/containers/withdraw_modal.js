@@ -68,11 +68,6 @@ function WithdrawModal(props) {
         transactions[txHash] && transactions[txHash].status
       }`
     );
-
-    // otherwise, return the transaction status
-    return `Transaction status: ${
-      transactions[txHash] && transactions[txHash].status
-    }`;
   };
 
   return (
@@ -112,7 +107,9 @@ function WithdrawModal(props) {
             </Form.Row>
           </Form>
         </Modal.Footer>
-        <Button onClick={getTxStatus}>Get Txn Status</Button>
+        {process.env.REACT_APP_DEBUG === "true" && (
+          <Button onClick={getTxStatus}>Get Txn Status</Button>
+        )}
       </Modal>
     </>
   );

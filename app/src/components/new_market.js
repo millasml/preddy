@@ -80,11 +80,6 @@ export default (props) => {
               transactions[txHash] && transactions[txHash].status
             }`
           );
-
-          // otherwise, return the transaction status
-          return `Transaction status: ${
-            transactions[txHash] && transactions[txHash].status
-          }`;
         };
 
         if (!initialized) {
@@ -201,7 +196,9 @@ function AddNewMarket(props) {
           <Button type="submit">Create New Market</Button>
         </Form.Row>
       </ModalFooter>
-      <Button onClick={props.getTxStatus}>Get Txn Status</Button>
+      {process.env.REACT_APP_DEBUG === "true" && (
+        <Button onClick={props.getTxStatus}>Get Txn Status</Button>
+      )}
     </Form>
   );
 }
