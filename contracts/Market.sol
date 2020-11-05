@@ -33,7 +33,7 @@ contract Market is BMath {
     // market state variables
     Status status;
     mapping(address => Bets) public bets;
-    mapping(uint256 => uint256) outcomeToAmount;
+    uint256[] outcomeToAmount;
     uint256 result; // resolved outcome
     address[] public betters;
 
@@ -86,6 +86,10 @@ contract Market is BMath {
         tokenWeight = bdiv(BONE, itob(outcomeCount));
     }
 
+    function getTotalBetAmounts() public view returns (uint256[] memory) {
+        return outcomeToAmount;
+    }
+
     function getTokenWeight() public view returns (uint256) {
         return tokenWeight;
     }
@@ -103,17 +107,17 @@ contract Market is BMath {
     function getStatus() public view returns (string memory) {
         if (status == Status.Open) {
             return "Open";
-        } else if (status == Status.Close){
+        } else if (status == Status.Close) {
             return "Close";
         } else {
             return "Resolved";
         }
     }
 
-    function setStatus(uint idx) public{
+    function setStatus(uint256 idx) public {
         if (Status(idx) == Status.Open) {
             status = Status.Open;
-        } else if (Status(idx) == Status.Close){
+        } else if (Status(idx) == Status.Close) {
             status = Status.Close;
         } else {
             status = Status.Resolved;
@@ -184,6 +188,7 @@ contract Market is BMath {
             uint256[] memory _outcomes = new uint256[](outcomeCount);
             bets[msg.sender].outcomes = _outcomes;
         }
+        outcomeToAmount[outcomeIdx] += msg.value;
         // Do adjustments to all tokens as a "liquidity event"
         uint256 newPoolTokens = itob(msg.value);
         for (uint256 i = 0; i < liquidTokens.length; i++) {
