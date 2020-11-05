@@ -15,6 +15,7 @@ import ListGroup from "react-bootstrap/ListGroup";
 
 import ResolveModal from "./resolve_modal";
 import NewBetModal from "./new_bet_modal";
+import WithdrawModal from "./withdraw_modal";
 
 import { bytesToStr } from "../utils";
 
@@ -48,11 +49,15 @@ function MarketDetail(props) {
   const [descriptionKey, setDescriptionKey] = useState(null);
   const [resolutionTimestampKey, setResolutionTimestampKey] = useState(null);
   const [outcomesKey, setOutcomesKey] = useState(null);
+  const [statusKey, setStatusKey] = useState(null);
+  const [arbiterKey, setArbiterKey] = useState(null);
 
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
   const [resolutionTimestamp, setResolutionTimestamp] = useState(0);
   const [outcomes, setOutcomes] = useState([]);
+  const [status, setStatus] = useState("Open");
+  const [arbiter, setArbiter] = useState("");
 
   useEffect(() => {
     const contract = drizzle.contracts[props.address];
@@ -67,6 +72,10 @@ function MarketDetail(props) {
       setResolutionTimestampKey(resolutionTimestampKey);
       const outcomesKey = contract.methods["outcomes"].cacheCall();
       setOutcomesKey(outcomesKey);
+      const statusKey = contract.methods["getStatus"].cacheCall();
+      setStatusKey(statusKey);
+      const arbiterKey = contract.methods["arbiter"].cacheCall();
+      setArbiterKey(arbiterKey);
     }
   }, [drizzle.contracts[props.address]]);
 
@@ -106,6 +115,20 @@ function MarketDetail(props) {
     }
   }, [outcomesKey, drizzleState]);
 
+  useEffect(() => {
+    const currentContractState = drizzleState.contracts[props.address];
+    if (currentContractState.getStatus[statusKey]) {
+      setStatus(currentContractState.getStatus[statusKey].value);
+    }
+  }, [statusKey, drizzleState]);
+
+  useEffect(() => {
+    const currentContractState = drizzleState.contracts[props.address];
+    if (currentContractState.arbiter[arbiterKey]) {
+      setArbiter(currentContractState.arbiter[arbiterKey].value);
+    }
+  }, [arbiterKey, drizzleState]);
+
   const getFormattedDate = (timeInSeconds) => {
     const dateObject = new Date(timeInSeconds * 1000);
     return dateObject.toDateString();
@@ -136,17 +159,23 @@ function MarketDetail(props) {
             <h6>Time Remaining</h6>
             {getTimeLeft(resolutionTimestamp)} Days Left
           </Col>
+          {status != "Closed" && (
+            <Col className="text-center">
+              <h6>Arbiter</h6>
+              {arbiter}
+            </Col>
+          )}
           <Col className="text-center">
-            <Badge className="status">{props.isOpen ? "OPEN" : "CLOSED"}</Badge>
+            <Badge className="status">{status}</Badge>
           </Col>
         </Row>
       </Card>
-      {props.isOpen && (
+      {status == "Closed" && (
         <Card>
           <Row>
             <Col xs={4} className="text-center">
               <h6>Arbiter</h6>
-              {props.arbiter}
+              {arbiter}
             </Col>
             <Col>Are you the arbiter? If so, you can resolve this market.</Col>
             <Col>
@@ -159,6 +188,21 @@ function MarketDetail(props) {
               >
                 <Button>Resolve</Button>
               </ResolveModal>
+            </Col>
+          </Row>
+        </Card>
+      )}
+      {status == "Resolved" && (
+        <Card>
+          <Row>
+            <Col xs={4} className="text-center">
+              <h6>This market has been resolved.</h6>
+            </Col>
+            <Col>You can withdraw your winnings.</Col>
+            <Col>
+              <WithdrawModal address={props.address}>
+                <Button>Withdraw</Button>
+              </WithdrawModal>
             </Col>
           </Row>
         </Card>
