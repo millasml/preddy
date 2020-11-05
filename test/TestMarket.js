@@ -35,6 +35,9 @@ contract("Market", async (accounts) => {
 
     let marketAddress = await instance.markets(0);
     market = await Market.at(marketAddress);
+    console.log(
+      await market.getTokenWeight().then((w) => web3.utils.fromWei(w))
+    );
   });
 
   it("should place bet", async () => {
@@ -47,9 +50,16 @@ contract("Market", async (accounts) => {
       from: better,
       value: web3.utils.toWei(betValue, "ether"),
     });
-    const betShares = await market.getBetShares(better);
+    const betShares = await market
+      .getBetShares(better)
+      .then((s) => s.map((s) => web3.utils.fromWei(s.toString())));
     console.log(betShares);
     const totalShares = betShares.reduce((acc, cur) => acc + cur, 0);
+
+    const betValues = await market
+      .getBetValues(better)
+      .then((s) => s.map((s) => web3.utils.fromWei(s.toString())));
+    console.log(betValues);
 
     assert.isTrue(totalShares > 0, "bet not updated in market");
 
