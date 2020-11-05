@@ -51,6 +51,7 @@ function MarketDetail(props) {
   const [outcomesKey, setOutcomesKey] = useState(null);
   const [statusKey, setStatusKey] = useState(null);
   const [arbiterKey, setArbiterKey] = useState(null);
+  const [winningsKey, setWinningsKey] = useState(null);
 
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
@@ -58,6 +59,7 @@ function MarketDetail(props) {
   const [outcomes, setOutcomes] = useState([]);
   const [status, setStatus] = useState("Open");
   const [arbiter, setArbiter] = useState("");
+  const [winnings, setWinnings] = useState(0);
 
   useEffect(() => {
     const contract = drizzle.contracts[props.address];
@@ -76,6 +78,10 @@ function MarketDetail(props) {
       setStatusKey(statusKey);
       const arbiterKey = contract.methods["arbiter"].cacheCall();
       setArbiterKey(arbiterKey);
+      const winningsKey = contract.methods["getWinnings"].cacheCall(
+        drizzleState.accounts[0]
+      );
+      setWinningsKey(winningsKey);
     }
   }, [drizzle.contracts[props.address]]);
 
@@ -128,6 +134,13 @@ function MarketDetail(props) {
       setArbiter(currentContractState.arbiter[arbiterKey].value);
     }
   }, [arbiterKey, drizzleState]);
+
+  useEffect(() => {
+    const currentContractState = drizzleState.contracts[props.address];
+    if (currentContractState.getWinnings[winningsKey]) {
+      setWinnings(currentContractState.getWinnings[winningsKey].value);
+    }
+  }, [winningsKey, drizzleState]);
 
   const getFormattedDate = (timeInSeconds) => {
     const dateObject = new Date(timeInSeconds * 1000);
@@ -192,22 +205,23 @@ function MarketDetail(props) {
           </Row>
         </Card>
       )}
-      {status == "Resolved" && (
+
+      {status == "Resolved" && winnings != 0 && (
         <Card>
           <Row>
             <Col xs={4} className="text-center">
               <h6>This market has been resolved.</h6>
+              {winnings}
             </Col>
             <Col>You can withdraw your winnings.</Col>
             <Col>
-              <WithdrawModal address={props.address}>
+              <WithdrawModal address={props.address} winnings={winnings}>
                 <Button>Withdraw</Button>
               </WithdrawModal>
             </Col>
           </Row>
         </Card>
       )}
-
       <Card>
         <Card.Title>Outcome and Probabilites</Card.Title>
         <ListGroup variant="flush">
