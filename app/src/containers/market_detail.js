@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import "./market_detail.scss";
 
 import { DrizzleContext } from "@drizzle/react-plugin";
+import { web3 } from "../drizzleOptions";
 
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
@@ -150,7 +151,9 @@ function MarketDetail(props) {
   useEffect(() => {
     const currentContractState = drizzleState.contracts[props.address];
     if (currentContractState.getWinnings[winningsKey]) {
-      setWinnings(currentContractState.getWinnings[winningsKey].value);
+      setWinnings(
+        web3.utils.fromWei(currentContractState.getWinnings[winningsKey].value)
+      );
     }
   }, [winningsKey, drizzleState]);
 
@@ -195,7 +198,7 @@ function MarketDetail(props) {
           </Col>
         </Row>
       </Card>
-      {status == "Closed" && (
+      {status == "Close" && (
         <Card>
           <Row>
             <Col xs={4} className="text-center">
