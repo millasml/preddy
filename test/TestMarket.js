@@ -96,7 +96,19 @@ contract("Market", async (accounts) => {
 
   it("should resolve market", async () => {
     // resolve
-    await market.resolve(0, { from: accounts[0] });
+    let gasPrice = 200000
+    let expectedFee = (await market.getTotalAmount()) * 0.01
+    let prevBalance = parseInt(await web3.eth.getBalance(accounts[0]));
+
+    let result = await market.resolve(0, { from: accounts[0], gasPrice : gasPrice});
+    let gasFee = gasPrice * result.receipt.gasUsed;
+    let actualFee = parseInt(await web3.eth.getBalance(accounts[0])) - prevBalance + gasFee;
+
+    // round to nearest 2dp.
+    expectedFee = Math.round(expectedFee / 10**18 * 100) /100
+    actualFee = Math.round(actualFee / 10**18 * 100) /100
+
+    assert.equal(expectedFee, actualFee);
 
     let getResult = async (account) => {
       let result = await market.getWinnings(account);

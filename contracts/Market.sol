@@ -28,6 +28,7 @@ contract Market is BMath {
     string public description;
     uint256 public resolutionTimestamp;
     address public arbiter;
+    uint256 public arbiterFeePercentage = bdiv(itob(1), 100);
 
     // market state variables
     Status status;
@@ -228,10 +229,19 @@ contract Market is BMath {
         require(status == Status.Close, "market is not ready to be resolved");
         require(msg.sender == arbiter, "only arbiter can resolve the market");
 
-        // TODO: fee?
+        // arbitration fee
+        uint256 fee = bmul(totalAmount, arbiterFeePercentage);
+        totalAmount = bsub(totalAmount, arbiterFeePercentage);
 
+        // change state
         result = outcomeIdx;
         status = Status.Resolved;
+
+        msg.sender.transfer(btoi(fee));
+    }
+
+    function getTotalAmount() public view returns (uint256) {
+        return btoi(totalAmount);
     }
 
     function withdraw() public timedTransitions {
