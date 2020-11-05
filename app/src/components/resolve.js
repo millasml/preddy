@@ -76,7 +76,9 @@ function Resolve(props) {
       onSubmit={(e) => {
         e.preventDefault();
         resolveMarket(parseInt(resolution));
-        // props.onClose();
+        if (process.env.REACT_APP_DEBUG !== "true") {
+          props.onClose();
+        }
       }}
       className="new-bet-form"
     >

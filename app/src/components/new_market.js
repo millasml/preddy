@@ -118,7 +118,9 @@ function AddNewMarket(props) {
           expiryDate,
           arbiter
         );
-        // props.onClose();
+        if (process.env.REACT_APP_DEBUG !== "true") {
+          props.onClose();
+        }
       }}
       className="new-market-form"
     >

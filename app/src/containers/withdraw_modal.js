@@ -94,7 +94,9 @@ function WithdrawModal(props) {
             onSubmit={(e) => {
               e.preventDefault();
               withdrawWinnings();
-              // props.onClose();
+              if (process.env.REACT_APP_DEBUG !== "true") {
+                handleClose();
+              }
             }}
             className="new-bet-form"
           >

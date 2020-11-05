@@ -75,7 +75,9 @@ function NewBet(props) {
       onSubmit={(e) => {
         e.preventDefault();
         createBet(props.index, amount);
-        // props.onClose();
+        if (process.env.REACT_APP_DEBUG !== "true") {
+          props.onClose();
+        }
       }}
       className="new-bet-form"
     >
