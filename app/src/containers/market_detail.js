@@ -12,6 +12,7 @@ import ProgressBar from "react-bootstrap/ProgressBar";
 import Badge from "react-bootstrap/Badge";
 import Card from "react-bootstrap/Card";
 import ListGroup from "react-bootstrap/ListGroup";
+import ButtonGroup from "react-bootstrap/ButtonGroup";
 
 import ResolveModal from "./resolve_modal";
 import NewBetModal from "./new_bet_modal";
@@ -27,6 +28,15 @@ export default (props) => {
       {(drizzleContext) => {
         const { drizzle, drizzleState, initialized } = drizzleContext;
 
+        const contract = drizzle.contracts[props.address];
+
+        const changeMarketStatus = (idx) => {
+          const newStackId = contract.methods["setStatus"].cacheSend(idx, {
+            from: drizzleState.accounts[0],
+            gas: 5000000,
+          });
+        };
+
         if (!initialized) {
           return "Loading...";
         }
@@ -35,6 +45,7 @@ export default (props) => {
             {...props}
             drizzle={drizzle}
             drizzleState={drizzleState}
+            changeMarketStatus={changeMarketStatus}
           />
         );
       }}
@@ -52,6 +63,7 @@ function MarketDetail(props) {
   const [statusKey, setStatusKey] = useState(null);
   const [arbiterKey, setArbiterKey] = useState(null);
   const [winningsKey, setWinningsKey] = useState(null);
+  const [changeStatusKey, setChangeStatusKey] = useState(null);
 
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
@@ -252,6 +264,34 @@ function MarketDetail(props) {
             );
           })}
         </ListGroup>
+      </Card>
+      <Card>
+        <Card.Title>Set Market State</Card.Title>
+        <ButtonGroup>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              props.changeMarketStatus(0);
+            }}
+          >
+            Open
+          </Button>
+          <Button
+            onClick={() => {
+              props.changeMarketStatus(1);
+            }}
+          >
+            Close
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              props.changeMarketStatus(2);
+            }}
+          >
+            Resolve
+          </Button>
+        </ButtonGroup>
       </Card>
     </Container>
   );
