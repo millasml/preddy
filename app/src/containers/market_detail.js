@@ -151,9 +151,7 @@ function MarketDetail(props) {
   useEffect(() => {
     const currentContractState = drizzleState.contracts[props.address];
     if (currentContractState.getWinnings[winningsKey]) {
-      setWinnings(
-        web3.utils.fromWei(currentContractState.getWinnings[winningsKey].value)
-      );
+      setWinnings(currentContractState.getWinnings[winningsKey].value ?? 0);
     }
   }, [winningsKey, drizzleState]);
 
@@ -208,9 +206,7 @@ function MarketDetail(props) {
             <Col>Are you the arbiter? If so, you can resolve this market.</Col>
             <Col>
               <ResolveModal
-                outcomes={props.voteDetails.map(
-                  (possibility) => possibility.outcome
-                )}
+                outcomes={outcomes.map((possibility) => possibility.outcome)}
                 title={props.question}
                 address={props.address}
               >
@@ -221,16 +217,19 @@ function MarketDetail(props) {
         </Card>
       )}
 
-      {status == "Resolved" && winnings != 0 && (
+      {status == "Resolved" && (
         <Card>
           <Row>
             <Col xs={4} className="text-center">
               <h6>This market has been resolved.</h6>
-              {winnings}
+              {web3.utils.fromWei(winnings.toString())}
             </Col>
             <Col>You can withdraw your winnings.</Col>
             <Col>
-              <WithdrawModal address={props.address} winnings={winnings}>
+              <WithdrawModal
+                address={props.address}
+                winnings={web3.utils.fromWei(winnings.toString())}
+              >
                 <Button>Withdraw</Button>
               </WithdrawModal>
             </Col>
