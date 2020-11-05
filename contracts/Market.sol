@@ -17,6 +17,7 @@ contract Market is BMath {
     struct Bets {
         bool active;
         uint256[] outcomes;
+        uint256[] spending;
     }
 
     enum Status {Open, Close, Resolved}
@@ -141,6 +142,30 @@ contract Market is BMath {
         return shares;
     }
 
+    function getCurrentBetAmount(address better)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        return bets[better].spending;
+    }
+
+    function getPotentialWinnings(address better)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        uint256[] memory winnings = new uint256[](outcomeCount);
+        for (uint256 i = 0; i < outcomeCount; i++) {
+            uint256 share = bmul(
+                totalAmount,
+                bdiv(totalTokens[i], bets[better].outcomes[i])
+            );
+            winnings[i] = btoi(share);
+        }
+        return winnings;
+    }
+
     function getLiquidTokens() public view returns (uint256[] memory) {
         return liquidTokens;
     }
@@ -190,8 +215,9 @@ contract Market is BMath {
         if (!bets[msg.sender].active) {
             betters.push(msg.sender);
             bets[msg.sender].active = true;
-            uint256[] memory _outcomes = new uint256[](outcomeCount);
-            bets[msg.sender].outcomes = _outcomes;
+            uint256[] memory arr = new uint256[](outcomeCount);
+            bets[msg.sender].outcomes = arr;
+            bets[msg.sender].spending = arr;
         }
         outcomeToAmount[outcomeIdx] = badd(
             itob(msg.value),
@@ -221,6 +247,10 @@ contract Market is BMath {
         bets[msg.sender].outcomes[outcomeIdx] = badd(
             bets[msg.sender].outcomes[outcomeIdx],
             outcomeShareTokens
+        );
+        bets[msg.sender].spending[outcomeIdx] = badd(
+            bets[msg.sender].spending[outcomeIdx],
+            msg.value
         );
         liquidTokens[outcomeIdx] = bsub(
             liquidTokens[outcomeIdx],
