@@ -42,7 +42,6 @@ export default (props) => {
           drizzle.addContract(contractConfig);
         }
         const contract = drizzle.contracts[props.address];
-        console.log(contract);
         return (
           <MarketDetail
             {...props}
@@ -65,6 +64,7 @@ function MarketDetail(props) {
   const [statusKey, setStatusKey] = useState(null);
   const [arbiterKey, setArbiterKey] = useState(null);
   const [winningsKey, setWinningsKey] = useState(null);
+  const [totalBetAmountsKey, setTotalBetAmountsKey] = useState(null);
 
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
@@ -106,6 +106,10 @@ function MarketDetail(props) {
         drizzleState.accounts[0]
       );
       setWinningsKey(winningsKey);
+      const totalBetAmountsKey = contract.methods[
+        "getTotalBetAmounts"
+      ].cacheCall();
+      setTotalBetAmountsKey(totalBetAmountsKey);
     }
   }, [drizzle.contracts[props.address]]);
 
@@ -149,18 +153,28 @@ function MarketDetail(props) {
   useEffect(() => {
     if (
       outcomesKey &&
-      drizzleState.contracts[props.address].outcomes[outcomesKey]
+      drizzleState.contracts[props.address].outcomes[outcomesKey] &&
+      totalBetAmountsKey &&
+      drizzleState.contracts[props.address].getTotalBetAmounts[
+        totalBetAmountsKey
+      ]
     ) {
       const outcomesBytes =
         drizzleState.contracts[props.address].outcomes[outcomesKey].value;
+      const totalBetAmounts = drizzleState.contracts[
+        props.address
+      ].getTotalBetAmounts[totalBetAmountsKey].value.map((a) => parseInt(a));
+      // console.log(totalBetAmounts);
+      const totalAmount = totalBetAmounts.reduce((a, b) => a + b, 0);
+      // console.log(totalAmount);
       setOutcomes(
-        getOutcomeStrings(outcomesBytes).map((outcome) => ({
+        getOutcomeStrings(outcomesBytes).map((outcome, index) => ({
           outcome,
-          percentage: 0.3,
+          percentage: totalBetAmounts[index] / totalAmount ?? 0,
         }))
       );
     }
-  }, [outcomesKey, drizzleState.contracts[props.address]]);
+  }, [outcomesKey, totalBetAmountsKey, drizzleState.contracts[props.address]]);
 
   useEffect(() => {
     if (

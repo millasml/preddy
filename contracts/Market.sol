@@ -28,7 +28,7 @@ contract Market is BMath {
     string public description;
     uint256 public resolutionTimestamp;
     address public arbiter;
-    uint256 public arbiterFeePercentage = bdiv(itob(1), 100);
+    uint256 public arbiterFeePercentage = bdiv(itob(1), itob(100));
 
     // market state variables
     Status status;
@@ -75,6 +75,11 @@ contract Market is BMath {
             liquidTokens.push(_tokens);
             totalTokens.push(_tokens);
             tokenTotal = badd(tokenTotal, _tokens);
+        }
+        for (uint256 i = 0; i < initialMarket.length; i++) {
+            outcomeToAmount.push(
+                bmul(poolTokens, bdiv(totalTokens[i], tokenTotal))
+            );
         }
         // we require the sum of tokens to equal the amount of wei sent in
         // this ensures we maintain a reasonable amount of accuracy
@@ -188,7 +193,10 @@ contract Market is BMath {
             uint256[] memory _outcomes = new uint256[](outcomeCount);
             bets[msg.sender].outcomes = _outcomes;
         }
-        outcomeToAmount[outcomeIdx] += msg.value;
+        outcomeToAmount[outcomeIdx] = badd(
+            itob(msg.value),
+            outcomeToAmount[outcomeIdx]
+        );
         // Do adjustments to all tokens as a "liquidity event"
         uint256 newPoolTokens = itob(msg.value);
         for (uint256 i = 0; i < liquidTokens.length; i++) {
@@ -222,10 +230,12 @@ contract Market is BMath {
 
     function getWinnings(address better) public view returns (uint256) {
         require(status == Status.Resolved, "market is not resolved yet");
-        uint256 share = bdiv(
-            bets[better].outcomes[result],
-            totalTokens[result]
-        );
+        uint256 tokens = bets[better].outcomes[result];
+        if (better == arbiter) {
+            tokens = badd(tokens, liquidTokens[result]);
+        }
+        uint256 share = bdiv(tokens, totalTokens[result]);
+
         uint256 value = bmul(totalAmount, share);
         return btoi(value);
     }
@@ -236,7 +246,7 @@ contract Market is BMath {
 
         // arbitration fee
         uint256 fee = bmul(totalAmount, arbiterFeePercentage);
-        totalAmount = bsub(totalAmount, arbiterFeePercentage);
+        totalAmount = bsub(totalAmount, fee);
 
         // change state
         result = outcomeIdx;

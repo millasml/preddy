@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 
 import { DrizzleContext } from "@drizzle/react-plugin";
+import { web3 } from "../drizzleOptions";
 
 import "./new_market.scss";
 
@@ -45,7 +46,7 @@ function NewBet(props) {
     (index, amount) => {
       const newStackId = contract.methods["placeBet"].cacheSend(index, {
         from: drizzleState.accounts[0],
-        value: amount,
+        value: web3.utils.toWei(amount.toString()),
         gas: 5000000,
       });
       setStackId(newStackId);
