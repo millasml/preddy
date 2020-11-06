@@ -372,7 +372,7 @@ function MarketDetail(props) {
                     {web3.utils.fromWei(possibility.bet.toString())}
                   </Col>
                   <Col xs={2} className="text-center">
-                    {web3.utils.fromWei(possibility.payout.toString())}
+                    {parseInt(web3.utils.fromWei(possibility.payout.toString())).toFixed(2)}
                   </Col>
                   <Col xs={1}>
                     <NewBetModal
