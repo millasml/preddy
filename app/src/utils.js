@@ -1,15 +1,14 @@
 import drizzleOptions from "./drizzleOptions";
-import resp from 'resp'
-
-const web3 = drizzleOptions.web3.customProvider;
+import resp from "resp";
+import { web3 } from "./drizzleOptions";
 
 export function strArrToBytes(arr) {
-    const res = web3.utils.fromAscii(resp.stringify(arr));
-    return [res, arr.length];
+  const res = web3.utils.fromAscii(resp.stringify(arr));
+  return [res, arr.length];
 }
 
 export function bytesToStr(arr) {
-    return resp.parse(web3.utils.toAscii(arr))
+  return resp.parse(web3.utils.toAscii(arr));
 }
 
 /**
@@ -18,15 +17,15 @@ export function bytesToStr(arr) {
  * @returns {number[]}
  */
 export function getOdds(liquidTokens) {
-    // Converts BN to Number. Note that this loses some precision but it is sufficient.
-    liquidTokens = liquidTokens.map(x => (parseInt(x.toString())));
+  // Converts BN to Number. Note that this loses some precision but it is sufficient.
+  liquidTokens = liquidTokens.map((x) => parseInt(x.toString()));
 
-    const norm = (x) => Math.pow(x, 1 / liquidTokens.length);
-    const V = liquidTokens.reduce((acc, x) => acc * norm(x), 1);
-    const weights = liquidTokens.map(x => V / norm(x));
-    const totalWeights = weights.reduce((acc, x) => acc + x, 0);
+  const norm = (x) => Math.pow(x, 1 / liquidTokens.length);
+  const V = liquidTokens.reduce((acc, x) => acc * norm(x), 1);
+  const weights = liquidTokens.map((x) => V / norm(x));
+  const totalWeights = weights.reduce((acc, x) => acc + x, 0);
 
-    return weights.map(x => x / totalWeights);
+  return weights.map((x) => x / totalWeights);
 }
 
 /**
@@ -37,15 +36,14 @@ export function getOdds(liquidTokens) {
  * @param {BN} totalAmount
  * @returns {number}
  */
-export function getPortfolioValue(betShares, liquidTokens, totalAmount){
-    let value = 0;
-    for(let i = 0; i < betShares.length; i ++){
-        const price = getPrice(liquidTokens, totalAmount, i);
-        value += price * betShares[i];
-    }
-    return value;
+export function getPortfolioValue(betShares, liquidTokens, totalAmount) {
+  let value = 0;
+  for (let i = 0; i < betShares.length; i++) {
+    const price = getPrice(liquidTokens, totalAmount, i);
+    value += price * betShares[i];
+  }
+  return value;
 }
-
 
 /**
  * Calculates the price of outcome tokens.
@@ -55,20 +53,21 @@ export function getPortfolioValue(betShares, liquidTokens, totalAmount){
  * @returns {number}
  */
 export function getPrice(liquidTokens, totalAmount, outcomeIdx) {
-    // Converts BN to Number. Note that this loses some precision but it is sufficient.
-    liquidTokens = liquidTokens.map(x => (parseInt(x.toString())));
-    totalAmount = parseInt(totalAmount.toString());
+  // Converts BN to Number. Note that this loses some precision but it is sufficient.
+  liquidTokens = liquidTokens.map((x) => parseInt(x.toString()));
+  totalAmount = parseInt(totalAmount.toString());
 
-    const newPoolTokens = parseInt(toWei("1"));
+  const newPoolTokens = parseInt(web3.utils.toWei("1"));
 
-    // all-asset deposit
-    let B_t = liquidTokens[outcomeIdx] * ((totalAmount + newPoolTokens) / totalAmount);
-    totalAmount += newPoolTokens;
+  // all-asset deposit
+  let B_t =
+    liquidTokens[outcomeIdx] * ((totalAmount + newPoolTokens) / totalAmount);
+  totalAmount += newPoolTokens;
 
-    // single-asset withdrawal
-    const W_t = liquidTokens.length;
-    let outcomeTokens = B_t * (1 - (1 - newPoolTokens / totalAmount) ** W_t);
+  // single-asset withdrawal
+  const W_t = liquidTokens.length;
+  let outcomeTokens = B_t * (1 - (1 - newPoolTokens / totalAmount) ** W_t);
 
-    const priceInWei = newPoolTokens / outcomeTokens;
-    return parseFloat(fromWei(priceInWei.toString()));
+  const priceInWei = newPoolTokens / outcomeTokens;
+  return parseFloat(web3.utils.fromWei(priceInWei.toString()));
 }
