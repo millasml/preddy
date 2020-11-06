@@ -1,10 +1,9 @@
-const utils = require("./utils");
-
+const utils = require("./utils")
 const MarketManager = artifacts.require("MarketManager");
 const Market = artifacts.require("Market");
 const nodeAssert = require("assert");
 
-const { toWei, fromWei } = web3.utils;
+const { toWei } = web3.utils;
 
 contract("Market", async (accounts) => {
   let market;
@@ -149,11 +148,3 @@ contract("Market", async (accounts) => {
   });
 });
 
-describe("ProbabilityDistribution", async () => {
-  it("should have correct probability distribution", () => {
-    const liquidTokens = [27, 8, 1];
-    const expected = [2 / 11, 3 / 11, 6 / 11];
-    const actual = utils.getOdds(liquidTokens);
-    assert.deepEqual(actual, expected, "wrong probability distribution");
-  });
-});
