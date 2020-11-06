@@ -1,4 +1,4 @@
-let utils = require("./utils");
+const utils = require("./utils");
 
 const MarketManager = artifacts.require("MarketManager");
 const Market = artifacts.require("Market");
@@ -14,7 +14,7 @@ contract("Market", async (accounts) => {
 
     let outcomeStrings = ["Binjai", "Banyan", "Tanjong"];
     let [outcomes, outcomeLengths] = utils.strArrToBytes(outcomeStrings);
-    const initialMarket = [1, 1, 1].map((e) =>
+    const initialMarket = [10, 10, 10].map((e) =>
       toWei(e.toString(), "ether").toString()
     );
     let arbiter = accounts[0];
@@ -30,7 +30,7 @@ contract("Market", async (accounts) => {
       question,
       description,
       resolutionTimestamp,
-      { from: arbiter, gas: 5000000, value: toWei("3", "ether") }
+      { from: arbiter, gas: 5000000, value: toWei("30", "ether") }
     );
 
     let marketAddress = await instance.markets(0);
@@ -55,11 +55,6 @@ contract("Market", async (accounts) => {
       .then((s) => s.map((s) => web3.utils.fromWei(s.toString())));
     console.log(betShares);
     const totalShares = betShares.reduce((acc, cur) => acc + cur, 0);
-
-    const betValues = await market
-      .getBetValues(better)
-      .then((s) => s.map((s) => web3.utils.fromWei(s.toString())));
-    console.log(betValues);
 
     assert.isTrue(totalShares > 0, "bet not updated in market");
 
@@ -96,17 +91,21 @@ contract("Market", async (accounts) => {
 
   it("should resolve market", async () => {
     // resolve
-    let gasPrice = 200000
-    let expectedFee = (await market.getTotalAmount()) * 0.01
+    let gasPrice = 200000;
+    let expectedFee = (await market.getTotalAmount()) * 0.01;
     let prevBalance = parseInt(await web3.eth.getBalance(accounts[0]));
 
-    let result = await market.resolve(0, { from: accounts[0], gasPrice : gasPrice});
+    let result = await market.resolve(0, {
+      from: accounts[0],
+      gasPrice: gasPrice,
+    });
     let gasFee = gasPrice * result.receipt.gasUsed;
-    let actualFee = parseInt(await web3.eth.getBalance(accounts[0])) - prevBalance + gasFee;
+    let actualFee =
+      parseInt(await web3.eth.getBalance(accounts[0])) - prevBalance + gasFee;
 
     // round to nearest 2dp.
-    expectedFee = Math.round(expectedFee / 10**18 * 100) /100
-    actualFee = Math.round(actualFee / 10**18 * 100) /100
+    expectedFee = Math.round((expectedFee / 10 ** 18) * 100) / 100;
+    actualFee = Math.round((actualFee / 10 ** 18) * 100) / 100;
 
     assert.equal(expectedFee, actualFee);
 
@@ -147,5 +146,14 @@ contract("Market", async (accounts) => {
       parseInt(balance),
       "wrong withdrawal result"
     );
+  });
+});
+
+describe("ProbabilityDistribution", async () => {
+  it("should have correct probability distribution", () => {
+    const liquidTokens = [27, 8, 1];
+    const expected = [2 / 11, 3 / 11, 6 / 11];
+    const actual = utils.getOdds(liquidTokens);
+    assert.deepEqual(actual, expected, "wrong probability distribution");
   });
 });

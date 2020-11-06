@@ -43,7 +43,6 @@ contract Market is BMath {
     // totalTokens[i] is the total number of tokens in outcome [i]
     uint256[] totalTokens;
     // totalAmount is the wei of all bets.
-    // it is also the pool token in the Balancer scheme.
     uint256 totalAmount;
     // tokenWeight is the reciprocal of outcomeCount
     uint256 tokenWeight;
@@ -84,133 +83,22 @@ contract Market is BMath {
         }
         // we require the sum of tokens to equal the amount of wei sent in
         // this ensures we maintain a reasonable amount of accuracy
-        // require(
-        //     tokenTotal != poolTokens,
-        //     "Initial market options must sum to value sent"
-        // );
         totalAmount = poolTokens;
         tokenWeight = bdiv(BONE, itob(outcomeCount));
     }
 
-    function getTotalBetAmounts() public view returns (uint256[] memory) {
-        return outcomeToAmount;
-    }
-
-    function getTokenWeight() public view returns (uint256) {
-        return tokenWeight;
-    }
-
-    // Perform timed transitions. Be sure to mention
-    // this modifier first, otherwise the guards
-    // will not take the new stage into account.
+    /* 
+    Core prediction market functionality
+    Markets go from
+    - Open: Betting is allowed as resolution date has not passed. 
+    - Closed: Market stops accepting bets and awaits resolution by arbiter
+    - Resolved: Arbiter has chosen a resolution, and winners can withdraw their winnings
+    */
     modifier timedTransitions() {
         if (status == Status.Open && block.timestamp >= resolutionTimestamp) {
             status = Status.Close;
         }
         _;
-    }
-
-    function getStatus() public view returns (string memory) {
-        if (status == Status.Open) {
-            return "Open";
-        } else if (status == Status.Close) {
-            return "Close";
-        } else {
-            return "Resolved";
-        }
-    }
-
-    function setStatus(uint256 idx) public {
-        if (Status(idx) == Status.Open) {
-            status = Status.Open;
-        } else if (Status(idx) == Status.Close) {
-            status = Status.Close;
-        } else {
-            status = Status.Resolved;
-        }
-    }
-
-    function getBetShares(address better)
-        public
-        view
-        returns (uint256[] memory)
-    {
-        uint256[] memory shares = new uint256[](bets[better].outcomes.length);
-        for (uint256 i = 0; i < bets[better].outcomes.length; i++) {
-            shares[i] = btoi(bets[better].outcomes[i]);
-        }
-        return shares;
-    }
-
-    function getBetterBetAmounts(address better)
-        public
-        view
-        returns (uint256[] memory)
-    {
-        return bets[better].spending;
-    }
-
-    function getBetterPotentialWinnings(address better)
-        public
-        view
-        returns (uint256[] memory)
-    {
-        require(
-            bets[better].active,
-            "Better must be active to retrieve potential winnings"
-        );
-        uint256[] memory winnings = new uint256[](outcomeCount);
-        for (uint256 i = 0; i < outcomeCount; i++) {
-            uint256 share = bmul(
-                totalAmount,
-                bdiv(bets[better].outcomes[i], totalTokens[i])
-            );
-            winnings[i] = btoi(share);
-        }
-        return winnings;
-    }
-
-    function getLiquidTokens() public view returns (uint256[] memory) {
-        return liquidTokens;
-    }
-
-    // returns array representing better's holdings in terms of wei
-    function getBetValues(address better)
-        public
-        view
-        returns (uint256[] memory)
-    {
-        uint256[] memory values = new uint256[](outcomeCount);
-        for (uint256 i = 0; i < liquidTokens.length; i++) {
-            if (status == Status.Resolved) {
-                if (i == result) {
-                    uint256 share = bdiv(
-                        bets[better].outcomes[i],
-                        totalTokens[i]
-                    );
-                    uint256 value = bmul(totalAmount, share);
-                    values[i] = btoi(value);
-                } else {
-                    values[i] = 0;
-                }
-            } else {
-                uint256 share = bets[better].outcomes[i];
-                if (share == 0) {
-                    values[i] = 0;
-                } else {
-                    uint256 shareValue = calcPoolOutGivenSingleIn(
-                        liquidTokens[i],
-                        tokenWeight,
-                        totalAmount,
-                        BONE,
-                        share,
-                        0
-                    );
-                    values[i] = btoi(shareValue);
-                }
-            }
-        }
-        return values;
     }
 
     function placeBet(uint256 outcomeIdx) public payable timedTransitions {
@@ -262,18 +150,6 @@ contract Market is BMath {
         );
     }
 
-    function getWinnings(address better) public view returns (uint256) {
-        require(status == Status.Resolved, "market is not resolved yet");
-        uint256 tokens = bets[better].outcomes[result];
-        if (better == arbiter) {
-            tokens = badd(tokens, liquidTokens[result]);
-        }
-        uint256 share = bdiv(tokens, totalTokens[result]);
-
-        uint256 value = bmul(totalAmount, share);
-        return btoi(value);
-    }
-
     function resolve(uint256 outcomeIdx) public timedTransitions {
         require(status == Status.Close, "market is not ready to be resolved");
         require(msg.sender == arbiter, "only arbiter can resolve the market");
@@ -289,10 +165,6 @@ contract Market is BMath {
         msg.sender.transfer(btoi(fee));
     }
 
-    function getTotalAmount() public view returns (uint256) {
-        return btoi(totalAmount);
-    }
-
     function withdraw() public timedTransitions {
         require(status == Status.Resolved, "market has not been resolved");
         require(bets[msg.sender].active, "no active bet found");
@@ -300,5 +172,108 @@ contract Market is BMath {
         uint256 amount = getWinnings(msg.sender);
         bets[msg.sender].active = false;
         msg.sender.transfer(amount);
+    }
+
+    /*
+    View functions
+    These functions are intended for calling from web3 for retrieving data from the smart contract
+    They will fail if called from another smart contract
+    */
+
+    function getTotalAmount() public view returns (uint256) {
+        return btoi(totalAmount);
+    }
+
+    function getTotalBetAmounts() public view returns (uint256[] memory) {
+        return outcomeToAmount;
+    }
+
+    function getTokenWeight() public view returns (uint256) {
+        return tokenWeight;
+    }
+
+    function getStatus() public view returns (string memory) {
+        if (status == Status.Open) {
+            return "Open";
+        } else if (status == Status.Close) {
+            return "Close";
+        } else {
+            return "Resolved";
+        }
+    }
+
+    function getTokenSupply() public view returns (uint256[] memory) {
+        return totalTokens;
+    }
+
+    function getLiquidTokens() public view returns (uint256[] memory) {
+        return liquidTokens;
+    }
+
+    // Returns an array of length outcomeCount, where getBetShares()[i] is the
+    // number of shares of outcome[i] that the better owns
+    function getBetShares(address better)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        uint256[] memory shares = new uint256[](bets[better].outcomes.length);
+        for (uint256 i = 0; i < bets[better].outcomes.length; i++) {
+            shares[i] = btoi(bets[better].outcomes[i]);
+        }
+        return shares;
+    }
+
+    // Returns an array of length outcomeCount, where getBetterBetAmounts()[i] is the
+    // amount of eth in wei that the better has placed on outcome[i]
+    function getBetterBetAmounts(address better)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        return bets[better].spending;
+    }
+
+    function getBetterPotentialWinnings(address better)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        uint256[] memory winnings = new uint256[](outcomeCount);
+        for (uint256 i = 0; i < outcomeCount; i++) {
+            uint256 share = bmul(
+                totalAmount,
+                bdiv(totalTokens[i], bets[better].outcomes[i])
+            );
+            winnings[i] = btoi(share);
+        }
+        return winnings;
+    }
+
+    function getWinnings(address better) public view returns (uint256) {
+        require(status == Status.Resolved, "market is not resolved yet");
+        uint256 tokens = bets[better].outcomes[result];
+        if (better == arbiter) {
+            tokens = badd(tokens, liquidTokens[result]);
+        }
+        uint256 share = bdiv(tokens, totalTokens[result]);
+
+        uint256 value = bmul(totalAmount, share);
+        return btoi(value);
+    }
+
+    /*
+   Debug functions
+   To be removed in an actual version of the Market smart contract
+   */
+
+    function setStatus(uint256 idx) public {
+        if (Status(idx) == Status.Open) {
+            status = Status.Open;
+        } else if (Status(idx) == Status.Close) {
+            status = Status.Close;
+        } else {
+            status = Status.Resolved;
+        }
     }
 }
