@@ -67,7 +67,10 @@ function NewBet(props) {
     if (
       !drizzleState.contracts[props.address].getTokenSupply[totalTokensKey] ||
       !drizzleState.contracts[props.address].getLiquidTokens[liquidTokensKey] ||
-      !drizzleState.contracts[props.address].getTotalAmount[totalAmountKey]
+      !drizzleState.contracts[props.address].getTotalAmount[totalAmountKey] ||
+      !amount ||
+      isNaN(parseFloat(amount)) ||
+      parseFloat(amount) == 0
     ) {
       return 0;
     }
@@ -139,7 +142,7 @@ function NewBet(props) {
           <Button type="submit">Place Bet</Button>
         </Form.Row>
         <Row>
-          <p>Betting odds: {getBettingOdds()}</p>
+          <p>Betting odds: {getBettingOdds().toFixed(2)}x</p>
         </Row>
       </ModalFooter>
       {process.env.REACT_APP_DEBUG === "true" && (

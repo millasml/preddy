@@ -83,8 +83,9 @@ export function getOddsForBet(
     ethIn
   );
 
-  const outcomeShare = outcomeTokens / parseInt(totalTokens[outcomeIdx]);
-  const potentialWinnings = totalAmount * outcomeShare;
+  const outcomeShare =
+    outcomeTokens / parseInt(web3.utils.fromWei(totalTokens[outcomeIdx]));
+  const potentialWinnings = parseInt(totalAmount.toString()) * outcomeShare;
   const odds = potentialWinnings / ethIn;
 
   return odds;
