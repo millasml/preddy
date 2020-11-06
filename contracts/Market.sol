@@ -5,10 +5,9 @@ import {BMath} from "./balancer-core/BMath.sol";
 
 contract Market is BMath {
     /**
-    Hard Requirement
-    Users can open new topic (a new prediction market) with 
-    - descriptions, 
-    - outcome options to bet on, 
+    Users can open new topic (a new prediction market) with
+    - descriptions,
+    - outcome options to bet on,
     - variable amount on each bet
     - resolution date & time
     - arbitrator identity (the trusted judge after the event occurs).
@@ -207,7 +206,11 @@ contract Market is BMath {
     }
 
     function getLiquidTokens() public view returns (uint256[] memory) {
-        return liquidTokens;
+        uint256[] memory tokens = new uint256[](liquidTokens.length);
+        for (uint256 i = 0; i < liquidTokens.length; i++) {
+            tokens[i] = btoi(liquidTokens[i]);
+        }
+        return tokens;
     }
 
     // Returns an array of length outcomeCount, where getBetShares()[i] is the
