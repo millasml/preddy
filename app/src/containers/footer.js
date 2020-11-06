@@ -5,6 +5,7 @@ import "./footer.scss";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Badge from "react-bootstrap/Badge";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
@@ -26,6 +27,9 @@ export default function Footer(props) {
             <p>
               <FontAwesomeIcon icon={faEnvelope} /> do-not-contact@gmail.com
             </p>
+            {process.env.REACT_APP_DEBUG === "true" && (
+              <Badge variant="warning">debug mode on</Badge>
+            )}
           </Col>
         </Row>
         <Row className="text-center">

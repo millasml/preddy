@@ -25,7 +25,11 @@ export default function OpenMarketModal(props) {
           <Modal.Title>Place Bet on {props.outcome}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <NewBetForm onClose={handleClose} outcome={props.outcome} />
+          <NewBetForm
+            onClose={handleClose}
+            index={props.index}
+            address={props.address}
+          />
         </Modal.Body>
       </Modal>
     </>
