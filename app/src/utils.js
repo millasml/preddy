@@ -91,6 +91,13 @@ export function getOddsForBet(
   return odds;
 }
 
+export function getPotentialWinnings(_totalTokens, _betShares, totalAmount) {
+  const totalTokens = _totalTokens.map((x) => parseInt(x.toString()));
+  const betShares = _betShares.map((x) => parseInt(x.toString()));
+  const winnings = totalTokens.map((t, i) => (betShares[i] / t) * totalAmount);
+  return winnings;
+}
+
 function getOutcomeTokensGivenEthIn(
   liquidTokens,
   totalAmount,

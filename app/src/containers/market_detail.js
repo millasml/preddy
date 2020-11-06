@@ -5,6 +5,7 @@ import "./market_detail.scss";
 import { DrizzleContext } from "@drizzle/react-plugin";
 import Market from "../contracts/Market.json";
 import { web3 } from "../drizzleOptions";
+import { getPotentialWinnings } from "../utils";
 
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
@@ -66,11 +67,11 @@ function MarketDetail(props) {
   const [winningsKey, setWinningsKey] = useState(null);
   const [totalBetAmountsKey, setTotalBetAmountsKey] = useState(null);
   const [liquidTokensKey, setLiquidTokensKey] = useState(null);
+  const [totalTokensKey, setTotalTokensKey] = useState(null);
+  const [totalAmountKey, setTotalAmountKey] = useState(null);
 
   const [betterBetAmountsKey, setBetterBetAmountsKey] = useState(null);
-  const [betterPotentialWinningsKey, setBetterPotentialWinningsKey] = useState(
-    null
-  );
+  const [betSharesKey, setBetSharesKey] = useState(null);
 
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
@@ -122,10 +123,14 @@ function MarketDetail(props) {
         "getBetterBetAmounts"
       ].cacheCall(drizzleState.accounts[0]);
       setBetterBetAmountsKey(betterBetAmountsKey);
-      const betterPotentialWinningKey = contract.methods[
-        "getBetterPotentialWinnings"
-      ].cacheCall(drizzleState.accounts[0]);
-      setBetterPotentialWinningsKey(betterPotentialWinningKey);
+      const betSharesKey = contract.methods["getBetShares"].cacheCall(
+        drizzleState.accounts[0]
+      );
+      setBetSharesKey(betSharesKey);
+      const totalTokensKey = contract.methods["getTokenSupply"].cacheCall();
+      setTotalTokensKey(totalTokensKey);
+      const totalAmountKey = contract.methods["getTotalAmount"].cacheCall();
+      setTotalAmountKey(totalAmountKey);
     }
   }, [drizzle.contracts[props.address]]);
 
@@ -177,33 +182,39 @@ function MarketDetail(props) {
       contract.getLiquidTokens[liquidTokensKey] &&
       betterBetAmountsKey &&
       contract.getBetterBetAmounts[betterBetAmountsKey] &&
-      betterPotentialWinningsKey &&
-      contract.getBetterPotentialWinnings[betterPotentialWinningsKey]
+      betSharesKey &&
+      contract.getBetShares[betSharesKey] &&
+      totalTokensKey &&
+      contract.getTokenSupply[totalTokensKey] &&
+      totalAmountKey &&
+      contract.getTotalAmount[totalAmountKey]
     ) {
       const outcomesBytes = contract.outcomes[outcomesKey].value;
       const totalBetAmounts = drizzleState.contracts[
         props.address
       ].getTotalBetAmounts[totalBetAmountsKey].value.map((a) => parseInt(a));
-      const totalAmount = totalBetAmounts.reduce((a, b) => a + b, 0);
 
       const liquidTokens =
         drizzleState.contracts[props.address].getLiquidTokens[liquidTokensKey]
           .value;
       const odds = getOdds(liquidTokens);
-      console.log(odds);
       const betterBetAmounts =
         contract.getBetterBetAmounts[betterBetAmountsKey].value;
-      const betterPotentialWinnings =
-        contract.getBetterPotentialWinnings[betterPotentialWinningsKey].value;
+      const betShares = contract.getBetShares[betSharesKey].value;
+      const totalTokens = contract.getTokenSupply[totalTokensKey].value;
+      const totalAmount = contract.getTotalAmount[totalAmountKey].value;
+      const potentialWinnings = getPotentialWinnings(
+        totalTokens,
+        betShares,
+        totalAmount
+      );
 
       setOutcomes(
         getOutcomeStrings(outcomesBytes).map((outcome, index) => ({
           outcome,
           percentage: odds[index] ?? 0,
           bet: betterBetAmounts[index] ?? 0,
-          payout: betterPotentialWinnings
-            ? betterPotentialWinnings[index] ?? 0
-            : 0,
+          payout: potentialWinnings ? potentialWinnings[index] ?? 0 : 0,
         }))
       );
     }
@@ -211,7 +222,7 @@ function MarketDetail(props) {
     outcomesKey,
     totalBetAmountsKey,
     betterBetAmountsKey,
-    betterPotentialWinningsKey,
+    betSharesKey,
     drizzleState.contracts[props.address],
   ]);
 
@@ -372,7 +383,7 @@ function MarketDetail(props) {
                     {web3.utils.fromWei(possibility.bet.toString())}
                   </Col>
                   <Col xs={2} className="text-center">
-                    {parseInt(web3.utils.fromWei(possibility.payout.toString())).toFixed(2)}
+                    {possibility.payout.toFixed(2)}
                   </Col>
                   <Col xs={1}>
                     <NewBetModal

@@ -222,7 +222,11 @@ contract Market is BMath {
     {
         uint256[] memory shares = new uint256[](bets[better].outcomes.length);
         for (uint256 i = 0; i < bets[better].outcomes.length; i++) {
-            shares[i] = btoi(bets[better].outcomes[i]);
+            shares[i] = bets[better].outcomes[i];
+            if (better == arbiter) {
+                shares[i] = badd(liquidTokens[i], shares[i]);
+            }
+            shares[i] = btoi(shares[i]);
         }
         return shares;
     }
