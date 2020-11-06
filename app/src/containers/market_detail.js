@@ -20,7 +20,7 @@ import ResolveModal from "./resolve_modal";
 import NewBetModal from "./new_bet_modal";
 import WithdrawModal from "./withdraw_modal";
 
-import { bytesToStr } from "../utils";
+import { bytesToStr, getOdds } from "../utils";
 
 //TO-DO: useEffect not triggered if the link is visited directly.
 
@@ -65,6 +65,8 @@ function MarketDetail(props) {
   const [arbiterKey, setArbiterKey] = useState(null);
   const [winningsKey, setWinningsKey] = useState(null);
   const [totalBetAmountsKey, setTotalBetAmountsKey] = useState(null);
+  const [liquidTokensKey, setLiquidTokensKey] = useState(null);
+
   const [betterBetAmountsKey, setBetterBetAmountsKey] = useState(null);
   const [betterPotentialWinningsKey, setBetterPotentialWinningsKey] = useState(
     null
@@ -114,6 +116,8 @@ function MarketDetail(props) {
         "getTotalBetAmounts"
       ].cacheCall();
       setTotalBetAmountsKey(totalBetAmountsKey);
+      const liquidTokensKey = contract.methods["getLiquidTokens"].cacheCall();
+      setLiquidTokensKey(liquidTokensKey);
       const betterBetAmountsKey = contract.methods[
         "getBetterBetAmounts"
       ].cacheCall(drizzleState.accounts[0]);
@@ -169,6 +173,8 @@ function MarketDetail(props) {
       contract.outcomes[outcomesKey] &&
       totalBetAmountsKey &&
       contract.getTotalBetAmounts[totalBetAmountsKey] &&
+      liquidTokensKey &&
+      contract.getLiquidTokens[liquidTokensKey] &&
       betterBetAmountsKey &&
       contract.getBetterBetAmounts[betterBetAmountsKey] &&
       betterPotentialWinningsKey &&
@@ -180,19 +186,24 @@ function MarketDetail(props) {
       ].getTotalBetAmounts[totalBetAmountsKey].value.map((a) => parseInt(a));
       const totalAmount = totalBetAmounts.reduce((a, b) => a + b, 0);
 
+      const liquidTokens =
+        drizzleState.contracts[props.address].getLiquidTokens[liquidTokensKey]
+          .value;
+      const odds = getOdds(liquidTokens);
+      console.log(odds);
       const betterBetAmounts =
         contract.getBetterBetAmounts[betterBetAmountsKey].value;
       const betterPotentialWinnings =
         contract.getBetterPotentialWinnings[betterPotentialWinningsKey].value;
 
-      console.log(betterBetAmounts, betterPotentialWinnings);
-
       setOutcomes(
         getOutcomeStrings(outcomesBytes).map((outcome, index) => ({
           outcome,
-          percentage: totalBetAmounts[index] / totalAmount ?? 0,
+          percentage: odds[index] ?? 0,
           bet: betterBetAmounts[index] ?? 0,
-          payout:betterPotentialWinnings ? betterPotentialWinnings[index] ?? 0 :0,
+          payout: betterPotentialWinnings
+            ? betterPotentialWinnings[index] ?? 0
+            : 0,
         }))
       );
     }
