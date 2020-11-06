@@ -185,14 +185,14 @@ function MarketDetail(props) {
       const betterPotentialWinnings =
         contract.getBetterPotentialWinnings[betterPotentialWinningsKey].value;
 
-      console.log(betterBetAmounts, betterPotentialWinnings);
-
       setOutcomes(
         getOutcomeStrings(outcomesBytes).map((outcome, index) => ({
           outcome,
           percentage: totalBetAmounts[index] / totalAmount ?? 0,
           bet: betterBetAmounts[index] ?? 0,
-          payout:betterPotentialWinnings ? betterPotentialWinnings[index] ?? 0 :0,
+          payout: betterPotentialWinnings
+            ? betterPotentialWinnings[index] ?? 0
+            : 0,
         }))
       );
     }

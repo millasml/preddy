@@ -85,7 +85,7 @@ export function getOddsForBet(
 
   const outcomeShare = outcomeTokens / parseInt(totalTokens[outcomeIdx]);
   const potentialWinnings = totalAmount * outcomeShare;
-  const odds = totalAmount / ethIn;
+  const odds = potentialWinnings / ethIn;
 
   return odds;
 }
