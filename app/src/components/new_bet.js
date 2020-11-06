@@ -2,9 +2,11 @@ import React, { useEffect, useState, useCallback } from "react";
 
 import { DrizzleContext } from "@drizzle/react-plugin";
 import { web3 } from "../drizzleOptions";
+import { getOddsForBet } from "../utils";
 
 import "./new_market.scss";
 
+import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
@@ -32,27 +34,64 @@ export default (props) => {
 function NewBet(props) {
   const { drizzle, drizzleState } = props;
   const [amount, setAmount] = useState(null);
-  const [contract, setContract] = useState(null);
+  const [totalTokensKey, setTotalTokensKey] = useState(null);
+  const [liquidTokensKey, setLiquidTokensKey] = useState(null);
+  const [totalAmountKey, setTotalAmountKey] = useState(null);
   const [stackId, setStackId] = useState(null);
 
   useEffect(() => {
-    if (!contract) {
-      const contract = drizzle.contracts[props.address];
-      setContract(contract);
-    }
+    const contract = drizzle.contracts[props.address];
+    const totalTokensKey = contract.methods["getTokenSupply"].cacheCall();
+    setTotalTokensKey(totalTokensKey);
+    const liquidTokensKey = contract.methods["getLiquidTokens"].cacheCall();
+    setLiquidTokensKey(liquidTokensKey);
+    const totalAmountKey = contract.methods["getTotalAmount"].cacheCall();
+    setTotalAmountKey(totalAmountKey);
   }, [drizzle.contracts, props.address]);
 
   const createBet = useCallback(
     (index, amount) => {
-      const newStackId = contract.methods["placeBet"].cacheSend(index, {
+      const newStackId = drizzle.contracts[props.address].methods[
+        "placeBet"
+      ].cacheSend(index, {
         from: drizzleState.accounts[0],
         value: web3.utils.toWei(amount.toString()),
         gas: 5000000,
       });
       setStackId(newStackId);
     },
-    [contract]
+    [drizzle.contracts[props.address]]
   );
+
+  const getBettingOdds = useCallback(() => {
+    if (
+      !drizzleState.contracts[props.address].getTokenSupply[totalTokensKey] ||
+      !drizzleState.contracts[props.address].getLiquidTokens[liquidTokensKey] ||
+      !drizzleState.contracts[props.address].getTotalAmount[totalAmountKey] ||
+      !amount ||
+      isNaN(parseFloat(amount)) ||
+      parseFloat(amount) == 0
+    ) {
+      return 0;
+    }
+    return getOddsForBet(
+      drizzleState.contracts[props.address].getTokenSupply[totalTokensKey]
+        .value,
+      drizzleState.contracts[props.address].getLiquidTokens[liquidTokensKey]
+        .value,
+      drizzleState.contracts[props.address].getTotalAmount[totalAmountKey]
+        .value,
+      props.index,
+      amount ?? 0
+    );
+  }, [
+    drizzleState.contracts[props.address],
+    totalTokensKey,
+    liquidTokensKey,
+    totalAmountKey,
+    props.index,
+    amount,
+  ]);
 
   const getTxStatus = () => {
     // get the transaction states from the drizzle state
@@ -102,6 +141,9 @@ function NewBet(props) {
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
           <Button type="submit">Place Bet</Button>
         </Form.Row>
+        <Row>
+          <p>Betting odds: {getBettingOdds().toFixed(2)}x</p>
+        </Row>
       </ModalFooter>
       {process.env.REACT_APP_DEBUG === "true" && (
         <Button onClick={getTxStatus}>Get Txn Status</Button>

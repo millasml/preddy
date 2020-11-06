@@ -37,6 +37,9 @@ function Option(props) {
         required
       />
       <InputGroup.Append>
+        <InputGroup.Text>%</InputGroup.Text>
+      </InputGroup.Append>
+      <InputGroup.Append>
         <Button onClick={props.onDelete}>
           <FontAwesomeIcon icon={faMinus} />
         </Button>

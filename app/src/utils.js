@@ -53,11 +53,55 @@ export function getPortfolioValue(betShares, liquidTokens, totalAmount) {
  * @returns {number}
  */
 export function getPrice(liquidTokens, totalAmount, outcomeIdx) {
+  // get delta using 1 wei
+  const ethIn = parseInt(web3.utils.toWei("1"));
+
+  const outcomeTokens = getOutcomeTokensGivenEthIn(
+    liquidTokens,
+    totalAmount,
+    outcomeIdx,
+    ethIn
+  );
+
+  const priceInWei = ethIn / outcomeTokens;
+  return parseFloat(web3.utils.fromWei(priceInWei.toString()));
+}
+
+export function getOddsForBet(
+  totalTokens,
+  liquidTokens,
+  totalAmount,
+  outcomeIdx,
+  _ethIn
+) {
+  const ethIn = parseInt(web3.utils.toWei(_ethIn.toString(), "ether"));
+
+  const outcomeTokens = getOutcomeTokensGivenEthIn(
+    liquidTokens,
+    totalAmount,
+    outcomeIdx,
+    ethIn
+  );
+
+  const outcomeShare =
+    outcomeTokens / parseInt(web3.utils.fromWei(totalTokens[outcomeIdx]));
+  const potentialWinnings = parseInt(totalAmount.toString()) * outcomeShare;
+  const odds = potentialWinnings / ethIn;
+
+  return odds;
+}
+
+function getOutcomeTokensGivenEthIn(
+  liquidTokens,
+  totalAmount,
+  outcomeIdx,
+  ethIn
+) {
   // Converts BN to Number. Note that this loses some precision but it is sufficient.
   liquidTokens = liquidTokens.map((x) => parseInt(x.toString()));
   totalAmount = parseInt(totalAmount.toString());
 
-  const newPoolTokens = parseInt(web3.utils.toWei("1"));
+  const newPoolTokens = ethIn;
 
   // all-asset deposit
   let B_t =
@@ -68,6 +112,5 @@ export function getPrice(liquidTokens, totalAmount, outcomeIdx) {
   const W_t = liquidTokens.length;
   let outcomeTokens = B_t * (1 - (1 - newPoolTokens / totalAmount) ** W_t);
 
-  const priceInWei = newPoolTokens / outcomeTokens;
-  return parseFloat(web3.utils.fromWei(priceInWei.toString()));
+  return outcomeTokens;
 }
