@@ -65,6 +65,10 @@ function MarketDetail(props) {
   const [arbiterKey, setArbiterKey] = useState(null);
   const [winningsKey, setWinningsKey] = useState(null);
   const [totalBetAmountsKey, setTotalBetAmountsKey] = useState(null);
+  const [betterBetAmountsKey, setBetterBetAmountsKey] = useState(null);
+  const [betterPotentialWinningsKey, setBetterPotentialWinningsKey] = useState(
+    null
+  );
 
   const [question, setQuestion] = useState("");
   const [description, setDescription] = useState("");
@@ -110,6 +114,14 @@ function MarketDetail(props) {
         "getTotalBetAmounts"
       ].cacheCall();
       setTotalBetAmountsKey(totalBetAmountsKey);
+      const betterBetAmountsKey = contract.methods[
+        "getBetterBetAmounts"
+      ].cacheCall(drizzleState.accounts[0]);
+      setBetterBetAmountsKey(betterBetAmountsKey);
+      const betterPotentialWinningKey = contract.methods[
+        "getBetterPotentialWinnings"
+      ].cacheCall(drizzleState.accounts[0]);
+      setBetterPotentialWinningsKey(betterPotentialWinningKey);
     }
   }, [drizzle.contracts[props.address]]);
 
@@ -151,30 +163,46 @@ function MarketDetail(props) {
   }, [resolutionTimestampKey, drizzleState.contracts[props.address]]);
 
   useEffect(() => {
+    const contract = drizzleState.contracts[props.address];
     if (
       outcomesKey &&
-      drizzleState.contracts[props.address].outcomes[outcomesKey] &&
+      contract.outcomes[outcomesKey] &&
       totalBetAmountsKey &&
-      drizzleState.contracts[props.address].getTotalBetAmounts[
-        totalBetAmountsKey
-      ]
+      contract.getTotalBetAmounts[totalBetAmountsKey] &&
+      betterBetAmountsKey &&
+      contract.getBetterBetAmounts[betterBetAmountsKey] &&
+      betterPotentialWinningsKey &&
+      contract.getBetterPotentialWinnings[betterPotentialWinningsKey]
     ) {
-      const outcomesBytes =
-        drizzleState.contracts[props.address].outcomes[outcomesKey].value;
+      const outcomesBytes = contract.outcomes[outcomesKey].value;
       const totalBetAmounts = drizzleState.contracts[
         props.address
       ].getTotalBetAmounts[totalBetAmountsKey].value.map((a) => parseInt(a));
-      // console.log(totalBetAmounts);
       const totalAmount = totalBetAmounts.reduce((a, b) => a + b, 0);
-      // console.log(totalAmount);
+
+      const betterBetAmounts =
+        contract.getBetterBetAmounts[betterBetAmountsKey].value;
+      const betterPotentialWinnings =
+        contract.getBetterPotentialWinnings[betterPotentialWinningsKey].value;
+
+      console.log(betterBetAmounts, betterPotentialWinnings);
+
       setOutcomes(
         getOutcomeStrings(outcomesBytes).map((outcome, index) => ({
           outcome,
           percentage: totalBetAmounts[index] / totalAmount ?? 0,
+          bet: betterBetAmounts[index] ?? 0,
+          payout:betterPotentialWinnings ? betterPotentialWinnings[index] ?? 0 :0,
         }))
       );
     }
-  }, [outcomesKey, totalBetAmountsKey, drizzleState.contracts[props.address]]);
+  }, [
+    outcomesKey,
+    totalBetAmountsKey,
+    betterBetAmountsKey,
+    betterPotentialWinningsKey,
+    drizzleState.contracts[props.address],
+  ]);
 
   useEffect(() => {
     if (
@@ -281,10 +309,12 @@ function MarketDetail(props) {
         <Card>
           <Row>
             <Col xs={4} className="text-center">
-              <h6>This market has been resolved.</h6>
-              {web3.utils.fromWei(winnings.toString())}
+              <h6>Your Winnings</h6>
+              {web3.utils.fromWei(winnings.toString()).substring(0, 5)}
             </Col>
-            <Col>You can withdraw your winnings.</Col>
+            <Col>
+              This market has been resolved. You can withdraw your winnings.
+            </Col>
             <Col>
               <WithdrawModal
                 address={props.address}
@@ -299,18 +329,39 @@ function MarketDetail(props) {
       <Card>
         <Card.Title>Outcome and Probabilites</Card.Title>
         <ListGroup variant="flush">
+          <Row>
+            <Col xs={4}>
+              <h6>Outcome</h6>
+            </Col>
+            <Col xs={3} className="text-center">
+              <h6>Outcome Likelihood</h6>
+            </Col>
+            <Col xs={2} className="text-center">
+              <h6>Your Bets</h6>
+            </Col>
+            <Col xs={2} className="text-center">
+              <h6>Your Payout</h6>
+            </Col>
+            <Col xs={1}></Col>
+          </Row>
           {outcomes.map((possibility, index) => {
             return (
               <ListGroup.Item key={index}>
                 <Row>
-                  <Col>{possibility.outcome}</Col>
-                  <Col>
+                  <Col xs={4}>{possibility.outcome}</Col>
+                  <Col xs={3}>
                     <ProgressBar
                       animated
                       variant="success"
                       now={possibility.percentage * 100}
-                      label={`${possibility.percentage * 100}%`}
+                      label={`${(possibility.percentage * 100).toFixed(2)}%`}
                     />
+                  </Col>
+                  <Col xs={2} className="text-center">
+                    {web3.utils.fromWei(possibility.bet.toString())}
+                  </Col>
+                  <Col xs={2} className="text-center">
+                    {web3.utils.fromWei(possibility.payout.toString())}
                   </Col>
                   <Col xs={1}>
                     <NewBetModal

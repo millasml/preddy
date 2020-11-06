@@ -155,11 +155,15 @@ contract Market is BMath {
         view
         returns (uint256[] memory)
     {
+        require(
+            bets[better].active,
+            "Better must be active to retrieve potential winnings"
+        );
         uint256[] memory winnings = new uint256[](outcomeCount);
         for (uint256 i = 0; i < outcomeCount; i++) {
             uint256 share = bmul(
                 totalAmount,
-                bdiv(totalTokens[i], bets[better].outcomes[i])
+                bdiv(bets[better].outcomes[i], totalTokens[i])
             );
             winnings[i] = btoi(share);
         }
