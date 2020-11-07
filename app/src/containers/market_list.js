@@ -7,7 +7,10 @@ import "./market_list.scss";
 
 import ListGroup from "react-bootstrap/ListGroup";
 import Card from "react-bootstrap/Card";
+import Image from "react-bootstrap/Image";
 import MarketItem from "../components/market_item";
+
+import NoMarketsPic from "../assets/undraw_No_data_re_kwbl.svg";
 
 export default (props) => {
   return (
@@ -75,11 +78,24 @@ function MarketList(props) {
     <Card>
       <Card.Title>Markets</Card.Title>
       <ListGroup variant="flush">
-        {allMarketAddresses.length > 0
-          ? allMarketAddresses.map((market, index) => {
-              return <MarketItem address={market} key={index} />;
-            })
-          : "No markets available"}
+        {allMarketAddresses.length > 0 ? (
+          allMarketAddresses.map((market, index) => {
+            return <MarketItem address={market} key={index} />;
+          })
+        ) : (
+          <div className="text-center m-5">
+            <Image src={NoMarketsPic} />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <h1>No Markets Available. Open a new one</h1>
+            <br />
+            <br />
+          </div>
+        )}
       </ListGroup>
     </Card>
   );

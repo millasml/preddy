@@ -383,16 +383,18 @@ function MarketDetail(props) {
                     {web3.utils.fromWei(possibility.bet.toString())}
                   </Col>
                   <Col xs={2} className="text-center">
-                    {possibility.payout.toFixed(2)}
+                    {possibility.payout.toFixed(2) ?? 0}
                   </Col>
                   <Col xs={1}>
-                    <NewBetModal
-                      index={index}
-                      outcome={possibility.outcome}
-                      address={props.address}
-                    >
-                      <Button>Bet</Button>
-                    </NewBetModal>
+                    {status === "Open" && (
+                      <NewBetModal
+                        index={index}
+                        outcome={possibility.outcome}
+                        address={props.address}
+                      >
+                        <Button>Bet</Button>
+                      </NewBetModal>
+                    )}
                   </Col>
                 </Row>
               </ListGroup.Item>
